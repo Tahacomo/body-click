@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 let regionData = {};
 let activeId = null;
@@ -13,6 +14,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const scene = new THREE.Scene();
+
+// Environment map — required for realistic glass/transmission reflections
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
 const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 100);
 camera.position.set(0, 2.0, 6.2);
 
@@ -45,16 +51,29 @@ scene.add(gridHelper);
 const body = new THREE.Group();
 scene.add(body);
 
-const BASE_COLOR = 0x9db3c9;
-const BASE_OPACITY = 0.17;
+const BASE_COLOR = 0xf3f8fb;
 
 function makeMaterial(){
   return new THREE.MeshPhysicalMaterial({
-    color: BASE_COLOR, transparent:true, opacity: BASE_OPACITY,
-    roughness:0.25, metalness:0, transmission:0.5, thickness:0.6,
-    emissive:0x000000, emissiveIntensity:0, depthWrite:false,
+    color: BASE_COLOR,
+    transparent: true,
+    opacity: 1,
+    roughness: 0.05,
+    metalness: 0,
+    transmission: 1,      // true glass — light passes through
+    thickness: 0.85,
+    ior: 1.45,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.15,
+    envMapIntensity: 1.3,
+    attenuationColor: new THREE.Color(0x9fd8ff),
+    attenuationDistance: 1.2,
+    depthWrite: false,
   });
 }
+
+// dark seam lines along each part's silhouette — the "crystal sculpture" look
+const edgeMat = new THREE.LineBasicMaterial({ color:0x0a0f16, transparent:true, opacity:0.55 });
 
 function addRegionMesh(id, geo, x, y, z, rx=0, ry=0, rz=0){
   const mesh = new THREE.Mesh(geo, makeMaterial());
@@ -64,6 +83,11 @@ function addRegionMesh(id, geo, x, y, z, rx=0, ry=0, rz=0){
   body.add(mesh);
   raycastable.push(mesh);
   (regionMeshes[id] ??= []).push(mesh);
+
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 28), edgeMat);
+  edges.position.copy(mesh.position);
+  edges.rotation.copy(mesh.rotation);
+  body.add(edges);
 }
 
 // head / neck
@@ -80,11 +104,11 @@ addRegionMesh('back', new THREE.BoxGeometry(0.95, 1.55, 0.18, 1, 1, 1), 0, 2.05,
 // pelvis / hips
 addRegionMesh('pelvis', new THREE.SphereGeometry(0.46, 20, 16), 0, 1.28, 0);
 
-// arms (shoulder-to-wrist capsule + hand)
+// arms (shoulder-to-wrist capsule + hand) — slightly open stance
 [-1,1].forEach(side=>{
   const id = side < 0 ? 'armLeft' : 'armRight';
-  addRegionMesh(id, new THREE.CapsuleGeometry(0.13, 1.15, 6, 12), side*0.72, 2.15, 0, 0, 0, side*0.06);
-  addRegionMesh(id, new THREE.SphereGeometry(0.11, 14, 14), side*0.78, 1.42, 0);
+  addRegionMesh(id, new THREE.CapsuleGeometry(0.13, 1.15, 6, 12), side*0.78, 2.15, 0, 0, 0, side*0.16);
+  addRegionMesh(id, new THREE.SphereGeometry(0.11, 14, 14), side*0.95, 1.42, 0);
 });
 
 // legs (thigh-to-ankle capsule + foot)
@@ -104,12 +128,14 @@ function setHighlight(id, on){
     const mat = m.material;
     if(on){
       mat.color.set(0xff4438);
-      mat.opacity = 0.55;
+      mat.transmission = 0.35;
+      mat.thickness = 0.4;
       mat.emissive.set(0xff2318);
-      mat.emissiveIntensity = 0.7;
+      mat.emissiveIntensity = 0.55;
     }else{
       mat.color.set(BASE_COLOR);
-      mat.opacity = BASE_OPACITY;
+      mat.transmission = 1;
+      mat.thickness = 0.85;
       mat.emissive.set(0x000000);
       mat.emissiveIntensity = 0;
     }
