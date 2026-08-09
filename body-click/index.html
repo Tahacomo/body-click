@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>بدن شفاف | بیماری‌های شایع هر ناحیه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+  <canvas id="scene" aria-label="مدل سه‌بعدی شفاف بدن انسان"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="hud-top">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <h1>بدن شفاف</h1>
+        <p class="mono">روی هر ناحیه از بدن کلیک کن</p>
+      </div>
+    </div>
+    <div class="hud-hint mono">برای چرخوندن بکشون، برای انتخاب کلیک کن</div>
+  </header>
+
+  <aside id="panel" class="panel" hidden>
+    <button id="panelClose" class="panel-close" aria-label="بستن">✕</button>
+    <div class="panel-eyebrow mono">ناحیه‌ی انتخاب‌شده</div>
+    <h2 id="panelTitle">—</h2>
+    <ul id="panelList" class="disease-list"></ul>
+  </aside>
+
+  <nav id="regionNav" class="region-chips" aria-label="فهرست نواحی بدن"></nav>
+
+  <div id="loadingScreen" class="loading">
+    <div class="loading-ring" aria-hidden="true"></div>
+    <p class="mono">در حال ساخت مدل...</p>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="script.js"></script>
+</body>
+</html>

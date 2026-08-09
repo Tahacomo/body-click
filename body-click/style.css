@@ -1,0 +1,76 @@
+:root{
+  --bg:#070c14;
+  --bg-panel:#0d1520f0;
+  --line:#1b2a3f;
+  --text:#eaf1f7;
+  --muted:#6e829e;
+  --cyan:#34e7c0;
+  --red:#ff4438;
+  --amber:#f5b942;
+  --font-display:'Vazirmatn',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-display);overflow:hidden;-webkit-font-smoothing:antialiased;}
+.mono{font-family:var(--font-mono);letter-spacing:.04em;}
+
+#app{position:relative;width:100vw;height:100vh;}
+#scene{position:absolute;inset:0;display:block;touch-action:none;cursor:pointer;}
+.vignette{
+  position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(ellipse at center, transparent 42%, var(--bg) 97%);
+}
+
+.hud-top{
+  position:absolute;top:0;inset-inline:0;z-index:5;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:22px 26px;pointer-events:none;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--red);position:relative;flex-shrink:0;
+  box-shadow:0 0 18px rgba(255,68,56,.45);
+}
+.brand-mark::before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--red);animation:pulse 2.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8);}50%{opacity:1;transform:scale(1);}}
+.brand-text h1{margin:0;font-size:19px;font-weight:800;}
+.brand-text p{margin:2px 0 0;font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+.hud-hint{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:8px 14px;border-radius:999px;background:rgba(13,21,32,.6);backdrop-filter:blur(6px);max-width:200px;text-align:center;}
+
+.panel{
+  position:absolute;top:0;bottom:0;left:0;z-index:8;width:min(340px,86vw);
+  background:var(--bg-panel);backdrop-filter:blur(14px);border-inline-end:1px solid var(--line);
+  padding:70px 24px 24px;overflow-y:auto;animation:slideIn .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes slideIn{from{transform:translateX(-100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.panel-close{position:absolute;top:20px;left:20px;background:none;border:1px solid var(--line);color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:13px;transition:.15s;}
+.panel-close:hover{color:var(--red);border-color:var(--red);}
+.panel-eyebrow{font-size:10px;color:var(--amber);text-transform:uppercase;margin-bottom:8px;}
+.panel h2{margin:0 0 20px;font-size:26px;font-weight:800;}
+.disease-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+.disease-list li{border-inline-start:2px solid var(--red);padding:10px 14px;background:rgba(255,68,56,.06);border-radius:0 6px 6px 0;}
+.disease-list li h3{margin:0 0 4px;font-size:14.5px;font-weight:600;}
+.disease-list li p{margin:0;font-size:12.5px;line-height:1.65;color:var(--muted);}
+
+.region-chips{
+  position:absolute;bottom:20px;inset-inline:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:0 20px;scrollbar-width:none;
+}
+.region-chips::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto;font-family:var(--font-mono);font-size:11px;color:var(--text);background:rgba(13,21,32,.75);border:1px solid var(--line);padding:9px 16px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);transition:.15s;white-space:nowrap;}
+.chip:hover{border-color:var(--red);color:var(--red);}
+.chip.active{background:var(--red);color:#160604;border-color:var(--red);font-weight:600;}
+
+.loading{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);transition:opacity .4s ease;}
+.loading.hidden{opacity:0;pointer-events:none;}
+.loading-ring{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--red);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading p{color:var(--muted);font-size:12px;}
+
+@media (max-width:640px){
+  .hud-top{padding:16px;}
+  .brand-text h1{font-size:16px;}
+  .hud-hint{display:none;}
+  .panel{width:100vw;padding:64px 18px 24px;}
+}
+@media (prefers-reduced-motion:reduce){.brand-mark::before,.loading-ring{animation:none;}}
