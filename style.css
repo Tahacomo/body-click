@@ -1,344 +1,67 @@
 :root {
     --primary-blue: #0062ff;
     --bg-light: #f4f9ff;
-    --glass-white: rgba(255, 255, 255, 0.85);
+    --glass-white: rgba(255, 255, 255, 0.9);
 }
 
 * { box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
+body { margin: 0; background: var(--bg-light); color: #1d2d3d; overflow-x: hidden; width: 100%; }
 
-body { 
-    margin: 0; background: var(--bg-light); color: #1d2d3d; 
-    overflow: hidden; width: 100vw; height: 100vh;
-}
-
-#scene { width: 100%; height: 100%; display: block; }
-
-/* هدر و جستجو */
-.top {
-    position: fixed; top: 25px; left: 0; right: 0;
-    display: flex; flex-direction: column; align-items: center;
-    z-index: 10; pointer-events: none;
-}
-.top h1 { font-size: 20px; margin-bottom: 15px; color: var(--primary-blue); font-weight: bold; }
-
-.search-container { pointer-events: auto; display: flex; gap: 8px; }
-
-.search-container input {
-    width: 280px; padding: 12px 20px; border: 1px solid #d0e3ff;
-    border-radius: 30px; background: white;
-    box-shadow: 0 8px 20px rgba(0, 98, 255, 0.05);
-    outline: none; font-size: 14px; transition: 0.3s;
-}
-
-#searchBtn {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 22px; background: var(--primary-blue);
-    color: white; border: none; border-radius: 30px;
-    cursor: pointer; font-weight: bold;
-    box-shadow: 0 8px 20px rgba(0, 98, 255, 0.2); transition: 0.3s;
-}
-#searchBtn:hover { background: #004dc0; transform: translateY(-2px); }
-
-/* منوی بیضی پایین */
-.legend-wrapper {
-    position: fixed; bottom: 35px; left: 50%;
-    transform: translateX(-50%); z-index: 10;
-}
-.legend {
-    display: flex; gap: 5px; padding: 8px 15px;
-    background: #0047ab; border-radius: 100px;
-    box-shadow: 0 15px 35px rgba(0, 71, 171, 0.3);
-    overflow-x: auto; max-width: 92vw; border: 2px solid rgba(255, 255, 255, 0.1);
-}
-.legend::-webkit-scrollbar { display: none; }
-
-.legend button {
-    background: transparent; border: none; color: rgba(255, 255, 255, 0.85);
-    padding: 10px 18px; border-radius: 50px; cursor: pointer;
-    font-size: 14px; white-space: nowrap; transition: 0.3s;
-}
-.legend button.active, .legend button:hover { background: white; color: #0047ab; }
-
-/* پنل اطلاعات */
-#panel {
-    position: fixed; right: 25px; top: 95px; bottom: 120px;
-    width: 360px; background: var(--glass-white);
-    backdrop-filter: blur(15px); border-radius: 25px;
-    border: 1px solid white; padding: 30px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05); overflow-y: auto; z-index: 20;
-}
-#panel h2 { color: var(--primary-blue); border-bottom: 2px solid #eef4fb; padding-bottom: 10px; margin-top: 0; }
-#content h3 { color: #d93025; font-size: 16px; margin: 25px 0 5px; }
-#content p { color: #5f6368; line-height: 1.6; font-size: 13.5px; margin: 0; }
-
-#close {
-    position: absolute; left: 15px; top: 15px; border: none;
-    background: #f0f0f0; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-}
-
-/* لودینگ */
-#loading {
-    position: fixed; inset: 0; background: var(--bg-light);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
-}
-.loader {
-    width: 40px; height: 40px; border: 3px solid #d0e3ff;
-    border-top: 3px solid var(--primary-blue); border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.hide { opacity: 0; visibility: hidden; transition: 0.5s; }
-
-@media (max-width: 600px) {
-    #panel { left: 15px; right: 15px; top: auto; height: 40vh; bottom: 120px; }
-    .search-container input { width: 160px; }
-    #searchBtn span { display: none; }
-}
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-
-let data = {}, active = null;
-const canvas = document.querySelector('#scene');
-const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf4f9ff);
-
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
-
-const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
-camera.position.set(0, 1.9, 6);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 1.8, 0);
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.5;
-
-const body = new THREE.Group();
-scene.add(body);
-const zones = [];
-
-const baseMat = () => new THREE.MeshPhysicalMaterial({
-    color: 0x0062ff, roughness: 0.1, transmission: 0.5, 
-    thickness: 1, transparent: true, opacity: 0.3, clearcoat: 1
-});
-
-const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.4 });
-
-function addZone(id, pos, size) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    m.position.set(...pos);
-    m.userData.region = id;
-    zones.push(m);
-    body.add(m);
-}
-
-function zonesForHuman() {
-    addZone('head', [0, 3.43, 0], [0.8, 0.75, 0.7]);
-    addZone('chest', [0, 2.5, 0], [1.25, 0.9, 0.75]);
-    addZone('abdomen', [0, 1.82, 0], [1.05, 0.65, 0.7]);
-    addZone('pelvis', [0, 1.25, 0], [1.05, 0.55, 0.75]);
-    addZone('armLeft', [-0.62, 2.35, 0], [0.5, 1.45, 0.5]);
-    addZone('armRight', [0.62, 2.35, 0], [0.5, 1.45, 0.5]);
-    addZone('legLeft', [-0.25, 0.25, 0], [0.5, 1.8, 0.6]);
-    addZone('legRight', [0.25, 0.25, 0], [0.5, 1.8, 0.6]);
-}
-
-async function load() {
-    try {
-        const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
-        const model = gltf.scene;
-        model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        model.position.y = -0.5;
-        model.scale.setScalar(4 / size.y);
-        body.add(model);
-        zonesForHuman();
-    } catch(e) { console.error("Model Error", e); }
-}
-
-function select(id) {
-    if (!data[id]) return;
-    document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
-    zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-
-    active = id;
-    const btn = document.querySelector(`[data-region="${id}"]`);
-    if(btn) btn.classList.add('active');
-
-    const zone = zones.find(z => z.userData.region === id);
-    if(zone) zone.material = highlightMat;
-    
-    document.querySelector('#title').textContent = data[id].label;
-    document.querySelector('#content').innerHTML = data[id].diseases
-        .map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
-    
-    document.querySelector('#panel').hidden = false;
-    controls.autoRotate = false;
-}
-
-window.selectFromSearch = (id) => { 
-    select(id); 
-    document.querySelector('#panel').scrollTop = 0;
-};
-
-// نرمال‌سازی فوق پیشرفته برای کیبوردهای مختلف
-function normalizeText(text) {
-    if (!text) return "";
-    return text
-        .replace(/[\u064A\u06CC]/g, "ی")
-        .replace(/[\u0643\u06A9]/g, "ک")
-        .replace(/آ/g, "ا")
-        .replace(/\u200C/g, " ") // تبدیل نیم‌فاصله به فاصله برای جستجوی بهتر
-        .toLowerCase()
-        .trim();
-}
-
-function performSearch() {
-    const rawInput = document.querySelector('#searchInput').value;
-    const term = normalizeText(rawInput);
-    const panel = document.querySelector('#panel');
-    const content = document.querySelector('#content');
-    const title = document.querySelector('#title');
-
-    // اگر کاربر کادر را پاک کرد
-    if (term.length === 0) {
-        if (active) select(active);
-        else panel.hidden = true;
-        return;
-    }
-
-    // شروع جستجو از ۲ کاراکتر به بالا
-    if (term.length < 2) {
-        title.textContent = 'در حال تایپ...';
-        content.innerHTML = '<p style="text-align:center; padding:20px;">حداقل ۲ حرف وارد کنید.</p>';
-        panel.hidden = false;
-        return;
-    }
-
-    let results = [];
-    for (let key in data) {
-        data[key].diseases.forEach(d => {
-            if (normalizeText(d.name).includes(term) || normalizeText(d.desc).includes(term)) {
-                results.push({ ...d, regionId: key, regionName: data[key].label });
-            }
-        });
-    }
-
-    title.textContent = 'پیشنهادات برای: ' + rawInput;
-    if (results.length > 0) {
-        content.innerHTML = results.map(x => `
-            <div class="search-item-live" onclick="window.selectFromSearch('${x.regionId}')">
-                <small>${x.regionName}</small>
-                <h3>${x.name}</h3>
-                <p>${x.desc.substring(0, 60)}...</p>
-            </div>`).join('');
-    } else {
-        content.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">نتیجه‌ای یافت نشد.</div>';
-    }
-    
-    panel.hidden = false;
-    controls.autoRotate = false;
-}
-
-// گوش دادن لحظه‌ای به تایپ کاربر (Input Event)
-document.querySelector('#searchInput').addEventListener('input', performSearch);
-
-// فشردن اینتر (برای اطمینان)
-document.querySelector('#searchInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        performSearch();
-    }
-});
-
-document.querySelector('#searchBtn').addEventListener('click', performSearch);
-
-document.querySelector('#close').onclick = () => {
-    document.querySelector('#panel').hidden = true;
-    document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
-    zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    active = null; controls.autoRotate = true; 
-    document.querySelector('#searchInput').value = '';
-};
-
-document.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => select(b.dataset.region)));
-
-const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
-renderer.domElement.addEventListener('click', e => {
-    pointer.x = (e.clientX / innerWidth) * 2 - 1;
-    pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-    ray.setFromCamera(pointer, camera);
-    const hit = ray.intersectObjects(zones)[0];
-    if (hit) select(hit.object.userData.region);
-});
-
-async function boot() {
-    try {
-        const res = await fetch('./regions.json');
-        data = await res.json();
-        await load();
-    } catch(e) { console.error("Boot error", e); }
-    document.querySelector('#loading').classList.add('hide');
-}
-boot();
-
-window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-});
-
-function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-animate();
-
-        /* منوی ناوبری اصلی */
+/* ناوبری */
 .main-nav {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 10px; padding: 6px; background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px); border-radius: 40px; z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0, 98, 255, 0.15); border: 1px solid white;
+    position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; padding: 6px; background: var(--glass-white);
+    backdrop-filter: blur(10px); border-radius: 40px; z-index: 2000;
+    box-shadow: 0 8px 25px rgba(0, 98, 255, 0.15); border: 1px solid white;
 }
 .main-nav button {
-    border: none; background: transparent; padding: 10px 25px; border-radius: 30px;
+    border: none; background: transparent; padding: 10px 20px; border-radius: 30px;
     cursor: pointer; font-weight: bold; color: #5f6368; transition: 0.3s;
 }
-.main-nav button.active { background: #0062ff; color: white; }
+.main-nav button.active { background: var(--primary-blue); color: white; }
 
-/* مدیریت نمایش بخش‌ها */
 .hidden { display: none !important; }
 
-/* استایل دانشنامه جدید */
-#view-encyclopedia {
-    padding-top: 100px; padding-bottom: 50px;
-    width: 100%; height: 100vh; overflow-y: auto; background: #f4f9ff;
+/* بخش 3D */
+#view-3d { width: 100vw; height: 100vh; position: relative; }
+#scene { width: 100%; height: 100%; display: block; }
+
+.top { position: fixed; top: 85px; left: 0; right: 0; text-align: center; pointer-events: none; }
+.top h1 { font-size: 18px; color: var(--primary-blue); }
+
+.legend-wrapper { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; }
+.legend {
+    display: flex; gap: 5px; padding: 8px 15px; background: #0047ab; border-radius: 100px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow-x: auto; max-width: 95vw;
 }
+.legend::-webkit-scrollbar { display: none; }
+.legend button {
+    background: transparent; border: none; color: white; padding: 10px 15px;
+    border-radius: 50px; cursor: pointer; white-space: nowrap; font-size: 13px;
+}
+.legend button.active { background: white; color: #0047ab; }
+
+#panel {
+    position: fixed; right: 20px; top: 90px; bottom: 110px; width: 340px;
+    background: var(--glass-white); backdrop-filter: blur(15px); border-radius: 20px;
+    padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); overflow-y: auto; z-index: 100;
+}
+#close { position: absolute; left: 10px; top: 10px; border: none; border-radius: 50%; cursor: pointer; }
+
+/* بخش دانشنامه */
+#view-encyclopedia { padding: 100px 0; min-height: 100vh; width: 100%; }
 .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-.page-header { text-align: center; margin-bottom: 40px; }
-.page-header h2 { color: #0062ff; font-size: 28px; }
+.organ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.organ-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eef4fb; }
+.organ-card img { width: 100%; height: 180px; object-fit: cover; }
+.organ-card-body { padding: 15px; }
+.organ-card-body h3 { color: var(--primary-blue); margin: 0 0 10px 0; }
+.organ-card-body p { font-size: 13px; color: #5f6368; line-height: 1.6; text-align: justify; }
 
-.organ-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
-}
-.organ-card {
-    background: white; border-radius: 20px; overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.03); transition: 0.3s;
-    border: 1px solid #e0eaf5;
-}
-.organ-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0, 98, 255, 0.1); }
-.organ-card img { width: 100%; height: 200px; object-fit: cover; }
-.organ-card-body { padding: 20px; }
-.organ-card-body h3 { color: #0047ab; margin: 0 0 10px 0; font-size: 20px; }
-.organ-card-body p { color: #5f6368; line-height: 1.7; font-size: 14px; text-align: justify; }
+/* لودینگ */
+#loading { position: fixed; inset: 0; background: var(--bg-light); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; }
+.loader { width: 40px; height: 40px; border: 3px solid #d0e3ff; border-top: 3px solid var(--primary-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading.hide { opacity: 0; visibility: hidden; transition: 0.5s; }
 
-@media (max-width: 600px) {
-    .main-nav { width: 90%; }
-    .main-nav button { padding: 8px 15px; font-size: 12px; }
-}
+@media (max-width: 600px) { #panel { left: 10px; right: 10px; width: auto; top: auto; height: 40vh; } }
