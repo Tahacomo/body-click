@@ -65,7 +65,7 @@ async function load() {
         model.scale.setScalar(4 / size.y);
         body.add(model);
         zonesForHuman();
-    } catch(e) { console.error("Model load error", e); }
+    } catch(e) { console.error("Model Error", e); }
 }
 
 function select(id) {
@@ -90,16 +90,17 @@ function select(id) {
 
 window.selectFromSearch = (id) => { 
     select(id); 
-    document.querySelector('#panel').scrollTop = 0; 
+    document.querySelector('#panel').scrollTop = 0;
 };
 
-// تابع نرمال‌سازی قدرتمند برای حل مشکل ی و ک
+// نرمال‌سازی فوق پیشرفته برای کیبوردهای مختلف
 function normalizeText(text) {
     if (!text) return "";
     return text
-        .replace(/[\u064A\u06CC]/g, "ی") // تبدیل هر دو نوع ی به مدل استاندارد
-        .replace(/[\u0643\u06A9]/g, "ک") // تبدیل هر دو نوع ک به مدل استاندارد
+        .replace(/[\u064A\u06CC]/g, "ی")
+        .replace(/[\u0643\u06A9]/g, "ک")
         .replace(/آ/g, "ا")
+        .replace(/\u200C/g, " ") // تبدیل نیم‌فاصله به فاصله برای جستجوی بهتر
         .toLowerCase()
         .trim();
 }
@@ -111,54 +112,58 @@ function performSearch() {
     const content = document.querySelector('#content');
     const title = document.querySelector('#title');
 
-    // اگر کادر خالی بود و عضوی انتخاب شده بود، همان عضو را نشان بده
-    if (term.length < 2) { 
-        if (active) select(active); 
-        else panel.hidden = true; 
-        return; 
+    // اگر کاربر کادر را پاک کرد
+    if (term.length === 0) {
+        if (active) select(active);
+        else panel.hidden = true;
+        return;
+    }
+
+    // شروع جستجو از ۲ کاراکتر به بالا
+    if (term.length < 2) {
+        title.textContent = 'در حال تایپ...';
+        content.innerHTML = '<p style="text-align:center; padding:20px;">حداقل ۲ حرف وارد کنید.</p>';
+        panel.hidden = false;
+        return;
     }
 
     let results = [];
     for (let key in data) {
         data[key].diseases.forEach(d => {
-            const normalizedTitle = normalizeText(d.name);
-            const normalizedDesc = normalizeText(d.desc);
-            if (normalizedTitle.includes(term) || normalizedDesc.includes(term)) {
+            if (normalizeText(d.name).includes(term) || normalizeText(d.desc).includes(term)) {
                 results.push({ ...d, regionId: key, regionName: data[key].label });
             }
         });
     }
 
-    title.textContent = 'نتایج جستجو: ' + rawInput;
+    title.textContent = 'پیشنهادات برای: ' + rawInput;
     if (results.length > 0) {
         content.innerHTML = results.map(x => `
-            <div class="search-item" style="cursor:pointer; border-bottom:1px solid #eef4fb; padding:15px 0;" onclick="window.selectFromSearch('${x.regionId}')">
-                <small style="color:#0062ff; font-weight:bold">${x.regionName}</small>
-                <h3 style="margin:5px 0; color:#d93025;">${x.name}</h3>
-                <p style="font-size:12px; color:#555;">${x.desc}</p>
+            <div class="search-item-live" onclick="window.selectFromSearch('${x.regionId}')">
+                <small>${x.regionName}</small>
+                <h3>${x.name}</h3>
+                <p>${x.desc.substring(0, 60)}...</p>
             </div>`).join('');
     } else {
-        content.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">نتیجه‌ای برای «'+rawInput+'» یافت نشد.</div>';
+        content.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">نتیجه‌ای یافت نشد.</div>';
     }
     
     panel.hidden = false;
     controls.autoRotate = false;
-    panel.scrollTop = 0;
 }
 
-// گوش دادن به اینتر (Keydown بهتر از Keypress است)
+// گوش دادن لحظه‌ای به تایپ کاربر (Input Event)
+document.querySelector('#searchInput').addEventListener('input', performSearch);
+
+// فشردن اینتر (برای اطمینان)
 document.querySelector('#searchInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        e.preventDefault(); // جلوگیری از رفرش احتمالی صفحه
+        e.preventDefault();
         performSearch();
     }
 });
 
-// سایر رویدادها
 document.querySelector('#searchBtn').addEventListener('click', performSearch);
-document.querySelector('#searchInput').addEventListener('input', (e) => {
-    if (e.target.value.length === 0 && !active) document.querySelector('#panel').hidden = true;
-});
 
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
