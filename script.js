@@ -226,3 +226,49 @@ function animate() {
     renderer.render(scene, camera);
 }
 animate();
+// --- بخش مدیریت ناوبری و دانشنامه ---
+
+const btn3d = document.getElementById('nav-3d');
+const btnEncy = document.getElementById('nav-encyclopedia');
+const view3d = document.getElementById('view-3d');
+const viewEncy = document.getElementById('view-encyclopedia');
+
+// جابجایی به بخش ۳ بعدی
+btn3d.onclick = () => {
+    btn3d.classList.add('active');
+    btnEncy.classList.remove('active');
+    view3d.classList.remove('hidden');
+    viewEncy.classList.add('hidden');
+};
+
+// جابجایی به بخش دانشنامه
+btnEncy.onclick = () => {
+    btnEncy.classList.add('active');
+    btn3d.classList.remove('active');
+    viewEncy.classList.remove('hidden');
+    view3d.classList.add('hidden');
+    renderEncyclopedia(); // ساخت کارت‌ها
+};
+
+// تابع ساخت کارت‌های دانشنامه از روی دیتای regions.json
+function renderEncyclopedia() {
+    const grid = document.getElementById('organ-grid');
+    grid.innerHTML = ''; // پاک کردن محتوای قبلی
+
+    Object.keys(data).forEach(key => {
+        const item = data[key];
+        // فقط بخش‌هایی که دیتا دارند را نمایش بده
+        if (item.label) {
+            const card = document.createElement('div');
+            card.className = 'organ-card';
+            card.innerHTML = `
+                <img src="${item.image || 'https://via.placeholder.com/400x250?text=No+Image'}" alt="${item.label}">
+                <div class="organ-card-body">
+                    <h3>${item.label}</h3>
+                    <p>${item.info || 'توضیحاتی برای این بخش در فایل JSON ثبت نشده است.'}</p>
+                </div>
+            `;
+            grid.appendChild(card);
+        }
+    });
+}
