@@ -6,14 +6,16 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 let data = {}, active = null, scene, camera, renderer, controls, zones = [];
 
 async function init() {
+    // 1. Load JSON
     try {
         const res = await fetch('./regions.json');
         data = await res.json();
     } catch (e) {
-        document.getElementById('status').innerText = "خطا در بارگذاری داده‌ها!";
+        document.getElementById('status').innerText = "خطا در بارگذاری JSON!";
         return;
     }
 
+    // 2. Setup Three.js
     const canvas = document.querySelector('#scene');
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -32,6 +34,7 @@ async function init() {
     controls.target.set(0, 1.5, 0);
     controls.autoRotate = true;
 
+    // 3. Load Model
     const loader = new GLTFLoader();
     loader.load('./models/human.glb', (gltf) => {
         const model = gltf.scene;
@@ -42,15 +45,20 @@ async function init() {
                 });
             }
         });
+
+        // Scale & Position
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
         model.position.y = -0.5;
         model.scale.setScalar(4 / size.y);
         scene.add(model);
 
+        // Click Zones
         setupZones();
         document.getElementById('loading').classList.add('hide');
         animate();
+    }, undefined, (err) => {
+        document.getElementById('status').innerText = "خطا: مدل (human.glb) یافت نشد!";
     });
 
     setupUI();
@@ -58,20 +66,17 @@ async function init() {
 
 function setupZones() {
     const addZone = (id, pos, sz) => {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(...sz), new THREE.MeshBasicMaterial({ visible: false }));
+        const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(...sz),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
         mesh.position.set(...pos);
         mesh.userData.region = id;
         zones.push(mesh);
         scene.add(mesh);
     };
 
-    // مختصات نواحی و اندام‌ها
     addZone('head', [0, 3.4, 0], [0.8, 0.7, 0.7]);
-    addZone('heart', [0, 2.6, 0.2], [0.4, 0.4, 0.4]);
-    addZone('lungs', [0, 2.5, 0.1], [1, 0.8, 0.5]);
-    addZone('liver', [-0.2, 1.95, 0.2], [0.5, 0.4, 0.4]);
-    addZone('stomach', [0.2, 1.95, 0.2], [0.4, 0.4, 0.4]);
-    addZone('kidneys', [0, 1.7, -0.2], [0.8, 0.4, 0.3]);
     addZone('chest', [0, 2.5, 0], [1.2, 0.9, 0.7]);
     addZone('abdomen', [0, 1.8, 0], [1, 0.6, 0.7]);
     addZone('pelvis', [0, 1.2, 0], [1, 0.5, 0.7]);
@@ -86,11 +91,14 @@ function select(id) {
     active = id;
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     document.querySelector(`[data-region="${id}"]`)?.classList.add('active');
+
     document.getElementById('title').innerText = data[id].label;
     const diseases = data[id].diseases;
+    
     document.getElementById('content').innerHTML = Array.isArray(diseases)
         ? diseases.map(d => `<h3>${d.name}</h3><p>${d.desc}</p>`).join('')
         : `<p>${diseases}</p>`;
+    
     document.getElementById('panel').hidden = false;
     controls.autoRotate = false;
 }
@@ -99,10 +107,13 @@ function setupUI() {
     document.querySelectorAll('[data-region]').forEach(btn => {
         btn.onclick = () => select(btn.dataset.region);
     });
+
     document.getElementById('close').onclick = () => {
         document.getElementById('panel').hidden = true;
         controls.autoRotate = true;
     };
+
+    // Raycaster for 3D clicks
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     window.addEventListener('click', (e) => {
@@ -112,10 +123,13 @@ function setupUI() {
         const hits = raycaster.intersectObjects(zones);
         if (hits.length > 0) select(hits[0].object.userData.region);
     });
+
+    // Navigation
     const nav3d = document.getElementById('nav-3d');
     const navEncy = document.getElementById('nav-encyclopedia');
     const v3d = document.getElementById('view-3d');
     const vEncy = document.getElementById('view-encyclopedia');
+
     nav3d.onclick = () => {
         nav3d.classList.add('active'); navEncy.classList.remove('active');
         v3d.classList.remove('hidden'); vEncy.classList.add('hidden');
@@ -125,6 +139,12 @@ function setupUI() {
         vEncy.classList.remove('hidden'); v3d.classList.add('hidden');
         renderEncyclopedia();
     };
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 }
 
 function renderEncyclopedia() {
@@ -147,4 +167,5 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 }
+
 init();
