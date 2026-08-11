@@ -8,10 +8,37 @@
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
-    <nav class="main-nav">
-        <button id="nav-3d" class="active">شبیه‌ساز سه‌بعدی</button>
-        <button id="nav-encyclopedia">دانشنامه اعضا</button>
-    </nav>
+    <!-- منوی ناوبری را به این تغییر دهید -->
+<nav class="main-nav">
+    <button id="nav-3d" class="active">شبیه‌ساز سه‌بعدی</button>
+    <button id="nav-encyclopedia">دانشنامه اعضا</button>
+    <button id="nav-quiz">آزمون آناتومی</button>
+</nav>
+
+<!-- بعد از بخش view-encyclopedia این بخش را اضافه کنید -->
+<main id="view-quiz" class="hidden">
+    <div class="quiz-container">
+        <div id="quiz-start-screen">
+            <h2>آزمون شناسایی اعضای بدن</h2>
+            <p>آماده‌ای دانش آناتومی خودت رو به چالش بکشی؟</p>
+            <button id="start-quiz-btn" class="action-btn">شروع آزمون</button>
+        </div>
+
+        <div id="quiz-game-screen" class="hidden">
+            <div class="quiz-header">
+                <div class="score-board">امتیاز: <span id="current-score">0</span></div>
+                <div class="question-box">عضو مقابل را پیدا کنید: <b id="target-organ">...</b></div>
+            </div>
+            <p class="quiz-hint">روی مدل سه‌بعدی کلیک کنید</p>
+        </div>
+
+        <div id="quiz-result-screen" class="hidden">
+            <h2 id="result-text">آفرین!</h2>
+            <p>امتیاز نهایی شما: <b id="final-score">0</b></p>
+            <button onclick="location.reload()" class="action-btn">دوباره</button>
+        </div>
+    </div>
+</main>
 
     <div id="loading">
         <div class="loader"></div>
