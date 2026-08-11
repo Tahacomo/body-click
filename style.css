@@ -1,14 +1,13 @@
 :root {
     --primary-blue: #0062ff;
-    --bg-color: #f4f9ff;
-    --panel-bg: rgba(255, 255, 255, 0.85);
-    --text-main: #1d2d3d;
+    --bg-light: #f4f9ff;
+    --glass-white: rgba(255, 255, 255, 0.85);
 }
 
 * { box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
 
 body { 
-    margin: 0; background: var(--bg-color); color: var(--text-main); 
+    margin: 0; background: var(--bg-light); color: #1d2d3d; 
     overflow: hidden; width: 100vw; height: 100vh;
 }
 
@@ -20,18 +19,25 @@ body {
     display: flex; flex-direction: column; align-items: center;
     z-index: 10; pointer-events: none;
 }
-.top h1 { 
-    font-size: 20px; margin-bottom: 12px; color: var(--primary-blue);
-}
+.top h1 { font-size: 20px; margin-bottom: 15px; color: var(--primary-blue); font-weight: bold; }
 
-.search-container { pointer-events: auto; }
+.search-container { pointer-events: auto; display: flex; gap: 8px; }
+
 .search-container input {
-    width: 320px; padding: 12px 25px; border: 1px solid #d0e3ff;
+    width: 280px; padding: 12px 20px; border: 1px solid #d0e3ff;
     border-radius: 30px; background: white;
-    box-shadow: 0 10px 25px rgba(0, 98, 255, 0.08);
+    box-shadow: 0 8px 20px rgba(0, 98, 255, 0.05);
     outline: none; font-size: 14px; transition: 0.3s;
 }
-.search-container input:focus { width: 380px; border-color: var(--primary-blue); }
+
+#searchBtn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 22px; background: var(--primary-blue);
+    color: white; border: none; border-radius: 30px;
+    cursor: pointer; font-weight: bold;
+    box-shadow: 0 8px 20px rgba(0, 98, 255, 0.2); transition: 0.3s;
+}
+#searchBtn:hover { background: #004dc0; transform: translateY(-2px); }
 
 /* منوی بیضی پایین */
 .legend-wrapper {
@@ -40,43 +46,39 @@ body {
 }
 .legend {
     display: flex; gap: 5px; padding: 8px 15px;
-    background: #004dc0; border-radius: 100px;
-    box-shadow: 0 15px 35px rgba(0, 77, 192, 0.25);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    overflow-x: auto; max-width: 92vw;
+    background: #0047ab; border-radius: 100px;
+    box-shadow: 0 15px 35px rgba(0, 71, 171, 0.3);
+    overflow-x: auto; max-width: 92vw; border: 2px solid rgba(255, 255, 255, 0.1);
 }
 .legend::-webkit-scrollbar { display: none; }
 
 .legend button {
-    background: transparent; border: none; color: rgba(255, 255, 255, 0.8);
+    background: transparent; border: none; color: rgba(255, 255, 255, 0.85);
     padding: 10px 18px; border-radius: 50px; cursor: pointer;
     font-size: 14px; white-space: nowrap; transition: 0.3s;
 }
-.legend button.active, .legend button:hover {
-    background: white; color: #004dc0;
-}
+.legend button.active, .legend button:hover { background: white; color: #0047ab; }
 
 /* پنل اطلاعات */
 #panel {
-    position: fixed; right: 25px; top: 90px; bottom: 110px;
-    width: 360px; background: var(--panel-bg);
+    position: fixed; right: 25px; top: 95px; bottom: 120px;
+    width: 360px; background: var(--glass-white);
     backdrop-filter: blur(15px); border-radius: 25px;
     border: 1px solid white; padding: 30px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
-    overflow-y: auto; z-index: 20;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05); overflow-y: auto; z-index: 20;
 }
-#panel h2 { color: var(--primary-blue); border-bottom: 1px solid #e0eaf5; padding-bottom: 10px; }
-#content h3 { color: #d93025; font-size: 16px; margin: 20px 0 5px; }
+#panel h2 { color: var(--primary-blue); border-bottom: 2px solid #eef4fb; padding-bottom: 10px; margin-top: 0; }
+#content h3 { color: #d93025; font-size: 16px; margin: 25px 0 5px; }
 #content p { color: #5f6368; line-height: 1.6; font-size: 13.5px; margin: 0; }
 
 #close {
     position: absolute; left: 15px; top: 15px; border: none;
-    background: #eee; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    background: #f0f0f0; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
 }
 
 /* لودینگ */
 #loading {
-    position: fixed; inset: 0; background: var(--bg-color);
+    position: fixed; inset: 0; background: var(--bg-light);
     display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
 }
 .loader {
@@ -87,7 +89,8 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 .hide { opacity: 0; visibility: hidden; transition: 0.5s; }
 
-@media (max-width: 800px) {
-    #panel { left: 15px; right: 15px; top: auto; height: 45vh; }
-    .search-container input { width: 250px; }
+@media (max-width: 600px) {
+    #panel { left: 15px; right: 15px; top: auto; height: 40vh; bottom: 120px; }
+    .search-container input { width: 160px; }
+    #searchBtn span { display: none; }
 }
