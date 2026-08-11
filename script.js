@@ -1,159 +1,178 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-let data = {}, active = null;
-const canvas = document.querySelector('#scene');
+let data = {}, active = null, scene, camera, renderer, controls, zones = [];
 
-if (canvas) {
-    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setSize(innerWidth, innerHeight);
+async function init() {
+    // 1. بارگذاری داده‌های JSON
+    try {
+        const response = await fetch('./regions.json');
+        data = await response.json();
+    } catch (e) {
+        document.getElementById('load-status').textContent = "خطا در بارگذاری داده‌های JSON!";
+        return;
+    }
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf4f9ff);
+    // 2. تنظیمات Three.js
+    const canvas = document.querySelector('#scene');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf8fbff);
+
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
-    const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
-    camera.position.set(0, 1.9, 6);
+    camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.8, 6);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.target.set(0, 1.8, 0);
+    controls.target.set(0, 1.5, 0);
     controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
 
-    const body = new THREE.Group();
-    scene.add(body);
-    const zones = [];
+    const bodyGroup = new THREE.Group();
+    scene.add(bodyGroup);
 
-    const baseMat = () => new THREE.MeshPhysicalMaterial({
-        color: 0x0062ff, roughness: 0.1, transmission: 0.5, transparent: true, opacity: 0.3
-    });
-    const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.4 });
+    // 3. بارگذاری مدل سه‌بعدی
+    const loader = new GLTFLoader();
+    try {
+        const gltf = await loader.loadAsync('./models/human.glb');
+        const model = gltf.scene;
+        
+        model.traverse(child => {
+            if (child.isMesh) {
+                child.material = new THREE.MeshPhysicalMaterial({
+                    color: 0x0062ff, roughness: 0.2, transmission: 0.5, transparent: true, opacity: 0.35
+                });
+            }
+        });
 
-    function addZone(id, pos, size) {
-        const m = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-        m.position.set(...pos);
-        m.userData.region = id;
-        zones.push(m);
-        body.add(m);
+        // تنظیم اندازه و موقعیت مدل
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        model.position.y = -0.5;
+        model.scale.setScalar(4 / size.y);
+        bodyGroup.add(model);
+
+        // ساخت مناطق کلیک (Hit Zones)
+        const addZone = (id, pos, sz) => {
+            const geo = new THREE.BoxGeometry(...sz);
+            const mat = new THREE.MeshBasicMaterial({ visible: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(...pos);
+            mesh.userData.region = id;
+            zones.push(mesh);
+            bodyGroup.add(mesh);
+        };
+
+        addZone('head', [0, 3.4, 0], [0.8, 0.7, 0.7]);
+        addZone('chest', [0, 2.5, 0], [1.2, 0.9, 0.7]);
+        addZone('abdomen', [0, 1.8, 0], [1, 0.6, 0.7]);
+        addZone('pelvis', [0, 1.2, 0], [1, 0.5, 0.7]);
+        addZone('armLeft', [-0.65, 2.3, 0], [0.5, 1.4, 0.5]);
+        addZone('armRight', [0.65, 2.3, 0], [0.5, 1.4, 0.5]);
+        addZone('legLeft', [-0.28, 0.2, 0], [0.5, 1.8, 0.6]);
+        addZone('legRight', [0.28, 0.2, 0], [0.5, 1.8, 0.6]);
+
+        document.getElementById('loading').classList.add('hide');
+        animate();
+    } catch (err) {
+        console.error(err);
+        document.getElementById('load-status').textContent = "خطا: فایل مدل (human.glb) یافت نشد!";
     }
 
-    function zonesForHuman() {
-        addZone('head', [0, 3.43, 0], [0.8, 0.75, 0.7]);
-        addZone('chest', [0, 2.5, 0], [1.25, 0.9, 0.75]);
-        addZone('abdomen', [0, 1.82, 0], [1.05, 0.65, 0.7]);
-        addZone('pelvis', [0, 1.25, 0], [1.05, 0.55, 0.75]);
-        addZone('armLeft', [-0.62, 2.35, 0], [0.5, 1.45, 0.5]);
-        addZone('armRight', [0.62, 2.35, 0], [0.5, 1.45, 0.5]);
-        addZone('legLeft', [-0.25, 0.25, 0], [0.5, 1.8, 0.6]);
-        addZone('legRight', [0.25, 0.25, 0], [0.5, 1.8, 0.6]);
-    }
+    // 4. رویدادها
+    setupUI();
+}
 
-    async function loadModel() {
-        try {
-            const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
-            const model = gltf.scene;
-            model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3());
-            model.position.y = -0.5;
-            model.scale.setScalar(4 / size.y);
-            body.add(model);
-            zonesForHuman();
-        } catch(e) { console.error("Model Error", e); }
-    }
-
-    function select(id) {
+function setupUI() {
+    const select = (id) => {
         if (!data[id]) return;
-        document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
-        zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
         active = id;
+        document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
         document.querySelector(`[data-region="${id}"]`)?.classList.add('active');
-        const zone = zones.find(z => z.userData.region === id);
-        if(zone) zone.material = highlightMat;
         
-        document.querySelector('#title').textContent = data[id].label;
+        document.getElementById('title').textContent = data[id].label;
         const diseases = data[id].diseases;
-        
-        document.querySelector('#content').innerHTML = Array.isArray(diseases) 
-            ? diseases.map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('') 
+        document.getElementById('content').innerHTML = Array.isArray(diseases) 
+            ? diseases.map(d => `<div><h3>${d.name}</h3><p>${d.desc}</p></div>`).join('')
             : `<p>${diseases}</p>`;
-            
-        document.querySelector('#panel').hidden = false;
+        
+        document.getElementById('panel').hidden = false;
         controls.autoRotate = false;
-    }
-
-    function initNavigation() {
-        const btn3d = document.getElementById('nav-3d');
-        const btnEncy = document.getElementById('nav-encyclopedia');
-        const v3d = document.getElementById('view-3d');
-        const vEncy = document.getElementById('view-encyclopedia');
-
-        if(btn3d && btnEncy) {
-            btn3d.onclick = () => {
-                btn3d.classList.add('active'); btnEncy.classList.remove('active');
-                v3d.classList.remove('hidden'); vEncy.classList.add('hidden');
-            };
-            btnEncy.onclick = () => {
-                btnEncy.classList.add('active'); btn3d.classList.remove('active');
-                vEncy.classList.remove('hidden'); v3d.classList.add('hidden');
-                renderEncyclopedia();
-            };
-        }
-    }
-
-    function renderEncyclopedia() {
-        const grid = document.getElementById('organ-grid');
-        if(!grid) return;
-        grid.innerHTML = Object.keys(data).map(key => {
-            const item = data[key];
-            return item.label ? `
-                <div class="organ-card">
-                    <img src="${item.image || 'https://via.placeholder.com/400x250?text='+item.label}" alt="${item.label}">
-                    <div class="organ-card-body">
-                        <h3>${item.label}</h3>
-                        <p>${item.info || 'توضیحاتی ثبت نشده است.'}</p>
-                    </div>
-                </div>` : '';
-        }).join('');
-    }
-
-    async function boot() {
-        try {
-            const res = await fetch('./regions.json');
-            data = await res.json();
-            await loadModel();
-            initNavigation();
-        } catch(e) { console.error(e); }
-        document.querySelector('#loading')?.classList.add('hide');
-    }
-
-    boot();
-
-    document.querySelector('#close').onclick = () => {
-        document.querySelector('#panel').hidden = true;
-        active = null; controls.autoRotate = true;
     };
 
-    document.querySelectorAll('[data-region]').forEach(b => b.onclick = () => select(b.dataset.region));
-
-    renderer.domElement.addEventListener('click', e => {
-        const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
-        pointer.x = (e.clientX / innerWidth) * 2 - 1;
-        pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-        ray.setFromCamera(pointer, camera);
-        const hit = ray.intersectObjects(zones)[0];
-        if (hit) select(hit.object.userData.region);
+    // کلیک روی دکمه‌های راهنما
+    document.querySelectorAll('[data-region]').forEach(btn => {
+        btn.onclick = () => select(btn.dataset.region);
     });
+
+    // بستن پنل
+    document.getElementById('close').onclick = () => {
+        document.getElementById('panel').hidden = true;
+        controls.autoRotate = true;
+        active = null;
+    };
+
+    // کلیک روی مدل سه‌بعدی
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    window.addEventListener('click', (e) => {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(zones);
+        if (hits.length > 0) select(hits[0].object.userData.region);
+    });
+
+    // ناوبری
+    const btn3d = document.getElementById('nav-3d');
+    const btnEncy = document.getElementById('nav-encyclopedia');
+    const v3d = document.getElementById('view-3d');
+    const vEncy = document.getElementById('view-encyclopedia');
+
+    btn3d.onclick = () => {
+        btn3d.classList.add('active'); btnEncy.classList.remove('active');
+        v3d.classList.remove('hidden'); vEncy.classList.add('hidden');
+    };
+    btnEncy.onclick = () => {
+        btnEncy.classList.add('active'); btn3d.classList.remove('active');
+        vEncy.classList.remove('hidden'); v3d.classList.add('hidden');
+        renderEncyclopedia();
+    };
 
     window.addEventListener('resize', () => {
-        camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-        renderer.setSize(innerWidth, innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
-
-    function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
-    animate();
 }
+
+function renderEncyclopedia() {
+    const grid = document.getElementById('organ-grid');
+    grid.innerHTML = Object.keys(data).map(key => {
+        const item = data[key];
+        return item.label ? `
+            <div class="organ-card">
+                <img src="${item.image || 'https://via.placeholder.com/400x250?text='+item.label}" alt="${item.label}">
+                <div class="organ-card-body">
+                    <h3>${item.label}</h3>
+                    <p>${item.info || 'توضیحات موجود نیست.'}</p>
+                </div>
+            </div>` : '';
+    }).join('');
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+init();
