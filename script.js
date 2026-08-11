@@ -11,7 +11,6 @@ renderer.setSize(innerWidth, innerHeight);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf4f9ff);
-
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
@@ -22,17 +21,14 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1.8, 0);
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.5;
 
 const body = new THREE.Group();
 scene.add(body);
 const zones = [];
 
 const baseMat = () => new THREE.MeshPhysicalMaterial({
-    color: 0x0062ff, roughness: 0.1, transmission: 0.5, 
-    thickness: 1, transparent: true, opacity: 0.3, clearcoat: 1
+    color: 0x0062ff, roughness: 0.1, transmission: 0.5, transparent: true, opacity: 0.3
 });
-
 const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.4 });
 
 function addZone(id, pos, size) {
@@ -54,7 +50,7 @@ function zonesForHuman() {
     addZone('legRight', [0.25, 0.25, 0], [0.5, 1.8, 0.6]);
 }
 
-async function load() {
+async function loadModel() {
     try {
         const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
         const model = gltf.scene;
@@ -65,133 +61,81 @@ async function load() {
         model.scale.setScalar(4 / size.y);
         body.add(model);
         zonesForHuman();
-    } catch(e) { console.error("Error loading model:", e); }
-}
-
-// تابع نرمال‌سازی متن برای جستجوی دقیق (ی و ک)
-function normalize(text) {
-    if (!text) return "";
-    return text
-        .toString()
-        .replace(/[\u064A\u06CC]/g, "ی") // ی عربی و فارسی
-        .replace(/[\u0643\u06A9]/g, "ک") // ک عربی و فارسی
-        .replace(/آ/g, "ا")
-        .trim()
-        .toLowerCase();
+    } catch(e) { console.error("Model Error", e); }
 }
 
 function select(id) {
     if (!data[id]) return;
-    
-    // ریست کردن استایل‌ها
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-
     active = id;
-    const btn = document.querySelector(`[data-region="${id}"]`);
-    if(btn) btn.classList.add('active');
-
+    document.querySelector(`[data-region="${id}"]`)?.classList.add('active');
     const zone = zones.find(z => z.userData.region === id);
     if(zone) zone.material = highlightMat;
-    
     document.querySelector('#title').textContent = data[id].label;
-    document.querySelector('#content').innerHTML = data[id].diseases
-        .map(x => `<div class="disease-box"><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
-    
+    const diseases = data[id].diseases;
+    document.querySelector('#content').innerHTML = Array.isArray(diseases) 
+        ? diseases.map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('') 
+        : `<p>${diseases}</p>`;
     document.querySelector('#panel').hidden = false;
     controls.autoRotate = false;
 }
 
-// اتصال تابع به Window برای کارکردن در HTML onclick
-window.selectFromSearch = (id) => {
-    select(id);
-    document.querySelector('#panel').scrollTop = 0;
-};
+// ناوبری و دانشنامه
+function initNavigation() {
+    const btn3d = document.getElementById('nav-3d');
+    const btnEncy = document.getElementById('nav-encyclopedia');
+    const v3d = document.getElementById('view-3d');
+    const vEncy = document.getElementById('view-encyclopedia');
 
-function performSearch() {
-    const inputField = document.querySelector('#searchInput');
-    const term = normalize(inputField.value);
-    const panel = document.querySelector('#panel');
-    const content = document.querySelector('#content');
-    const title = document.querySelector('#title');
+    btn3d.onclick = () => {
+        btn3d.classList.add('active'); btnEncy.classList.remove('active');
+        v3d.classList.remove('hidden'); vEncy.classList.add('hidden');
+    };
 
-    if (term.length === 0) {
-        if (active) select(active);
-        else panel.hidden = true;
-        return;
-    }
-
-    if (term.length < 2) {
-        title.textContent = 'جستجو...';
-        content.innerHTML = '<p style="text-align:center">حداقل ۲ حرف وارد کنید.</p>';
-        panel.hidden = false;
-        return;
-    }
-
-    let results = [];
-    // جستجو در تمام بخش‌های فایل JSON
-    Object.keys(data).forEach(regionKey => {
-        const region = data[regionKey];
-        region.diseases.forEach(disease => {
-            const nName = normalize(disease.name);
-            const nDesc = normalize(disease.desc);
-            if (nName.includes(term) || nDesc.includes(term)) {
-                results.push({
-                    ...disease,
-                    regionId: regionKey,
-                    regionLabel: region.label
-                });
-            }
-        });
-    });
-
-    title.textContent = 'نتایج یافت شده (' + results.length + ')';
-    
-    if (results.length > 0) {
-        content.innerHTML = results.map(res => `
-            <div class="search-item-live" onclick="window.selectFromSearch('${res.regionId}')">
-                <small>${res.regionLabel}</small>
-                <h3>${res.name}</h3>
-                <p>${res.desc}</p>
-            </div>
-        `).join('');
-    } else {
-        content.innerHTML = '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
-    }
-    
-    panel.hidden = false;
-    controls.autoRotate = false;
+    btnEncy.onclick = () => {
+        btnEncy.classList.add('active'); btn3d.classList.remove('active');
+        vEncy.classList.remove('hidden'); v3d.classList.add('hidden');
+        renderEncyclopedia();
+    };
 }
 
-// رویدادهای جستجو
-const searchInput = document.querySelector('#searchInput');
-searchInput.addEventListener('input', performSearch); // جستجوی لحظه‌ای
-searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        performSearch();
-    }
-});
-document.querySelector('#searchBtn').addEventListener('click', performSearch);
+function renderEncyclopedia() {
+    const grid = document.getElementById('organ-grid');
+    grid.innerHTML = Object.keys(data).map(key => {
+        const item = data[key];
+        return item.label ? `
+            <div class="organ-card">
+                <img src="${item.image || 'https://via.placeholder.com/400x250?text='+item.label}" alt="${item.label}">
+                <div class="organ-card-body">
+                    <h3>${item.label}</h3>
+                    <p>${item.info || 'توضیحاتی ثبت نشده است.'}</p>
+                </div>
+            </div>` : '';
+    }).join('');
+}
 
-// بستن پنل
+async function boot() {
+    try {
+        const res = await fetch('./regions.json');
+        data = await res.json();
+        await loadModel();
+        initNavigation();
+    } catch(e) { console.error(e); }
+    document.querySelector('#loading').classList.add('hide');
+}
+
+boot();
+
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
-    document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
-    zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    active = null; 
-    controls.autoRotate = true; 
-    document.querySelector('#searchInput').value = '';
+    active = null; controls.autoRotate = true;
 };
 
-// کلیک روی دکمه‌های منو
-document.querySelectorAll('[data-region]').forEach(b => {
-    b.addEventListener('click', () => select(b.dataset.region));
-});
+document.querySelectorAll('[data-region]').forEach(b => b.onclick = () => select(b.dataset.region));
 
-// کلیک روی مدل سه‌بعدی
-const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
 renderer.domElement.addEventListener('click', e => {
+    const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
     pointer.x = (e.clientX / innerWidth) * 2 - 1;
     pointer.y = -(e.clientY / innerHeight) * 2 + 1;
     ray.setFromCamera(pointer, camera);
@@ -199,76 +143,10 @@ renderer.domElement.addEventListener('click', e => {
     if (hit) select(hit.object.userData.region);
 });
 
-async function boot() {
-    try {
-        const res = await fetch('./regions.json');
-        if (!res.ok) throw new Error("JSON not found");
-        data = await res.json();
-        await load();
-    } catch(e) { 
-        console.error("Boot Error:", e);
-        document.querySelector('#loading b').textContent = "خطا در بارگذاری اطلاعات!";
-    }
-    document.querySelector('#loading').classList.add('hide');
-}
-
-boot();
-
 window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
 });
 
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
+function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
 animate();
-// --- بخش مدیریت ناوبری و دانشنامه ---
-
-const btn3d = document.getElementById('nav-3d');
-const btnEncy = document.getElementById('nav-encyclopedia');
-const view3d = document.getElementById('view-3d');
-const viewEncy = document.getElementById('view-encyclopedia');
-
-// جابجایی به بخش ۳ بعدی
-btn3d.onclick = () => {
-    btn3d.classList.add('active');
-    btnEncy.classList.remove('active');
-    view3d.classList.remove('hidden');
-    viewEncy.classList.add('hidden');
-};
-
-// جابجایی به بخش دانشنامه
-btnEncy.onclick = () => {
-    btnEncy.classList.add('active');
-    btn3d.classList.remove('active');
-    viewEncy.classList.remove('hidden');
-    view3d.classList.add('hidden');
-    renderEncyclopedia(); // ساخت کارت‌ها
-};
-
-// تابع ساخت کارت‌های دانشنامه از روی دیتای regions.json
-function renderEncyclopedia() {
-    const grid = document.getElementById('organ-grid');
-    grid.innerHTML = ''; // پاک کردن محتوای قبلی
-
-    Object.keys(data).forEach(key => {
-        const item = data[key];
-        // فقط بخش‌هایی که دیتا دارند را نمایش بده
-        if (item.label) {
-            const card = document.createElement('div');
-            card.className = 'organ-card';
-            card.innerHTML = `
-                <img src="${item.image || 'https://via.placeholder.com/400x250?text=No+Image'}" alt="${item.label}">
-                <div class="organ-card-body">
-                    <h3>${item.label}</h3>
-                    <p>${item.info || 'توضیحاتی برای این بخش در فایل JSON ثبت نشده است.'}</p>
-                </div>
-            `;
-            grid.appendChild(card);
-        }
-    });
-}
