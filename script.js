@@ -106,46 +106,59 @@ function normalizeText(text) {
 }
 
 function performSearch() {
-    const rawInput = document.querySelector('#searchInput').value;
-    const term = normalizeText(rawInput);
+    const inputField = document.querySelector('#searchInput');
+    const term = normalize(inputField.value);
     const panel = document.querySelector('#panel');
     const content = document.querySelector('#content');
     const title = document.querySelector('#title');
 
-    // اگر کاربر کادر را پاک کرد
     if (term.length === 0) {
         if (active) select(active);
         else panel.hidden = true;
         return;
     }
 
-    // شروع جستجو از ۲ کاراکتر به بالا
     if (term.length < 2) {
-        title.textContent = 'در حال تایپ...';
-        content.innerHTML = '<p style="text-align:center; padding:20px;">حداقل ۲ حرف وارد کنید.</p>';
+        title.textContent = 'جستجو...';
+        content.innerHTML = '<p style="text-align:center">حداقل ۲ حرف وارد کنید.</p>';
         panel.hidden = false;
         return;
     }
 
     let results = [];
-    for (let key in data) {
-        data[key].diseases.forEach(d => {
-            if (normalizeText(d.name).includes(term) || normalizeText(d.desc).includes(term)) {
-                results.push({ ...d, regionId: key, regionName: data[key].label });
-            }
-        });
-    }
+    
+    // جستجو در تمام بخش‌ها
+    Object.keys(data).forEach(regionKey => {
+        const region = data[regionKey];
+        
+        // --- بخش اصلاح شده: چک می‌کنیم که حتما لیست بیماری وجود داشته باشد ---
+        if (region && Array.isArray(region.diseases)) {
+            region.diseases.forEach(disease => {
+                const nName = normalize(disease.name);
+                const nDesc = normalize(disease.desc);
+                if (nName.includes(term) || nDesc.includes(term)) {
+                    results.push({
+                        ...disease,
+                        regionId: regionKey,
+                        regionLabel: region.label
+                    });
+                }
+            });
+        }
+    });
 
-    title.textContent = 'پیشنهادات برای: ' + rawInput;
+    title.textContent = 'نتایج یافت شده (' + results.length + ')';
+    
     if (results.length > 0) {
-        content.innerHTML = results.map(x => `
-            <div class="search-item-live" onclick="window.selectFromSearch('${x.regionId}')">
-                <small>${x.regionName}</small>
-                <h3>${x.name}</h3>
-                <p>${x.desc.substring(0, 60)}...</p>
-            </div>`).join('');
+        content.innerHTML = results.map(res => `
+            <div class="search-item-live" onclick="window.selectFromSearch('${res.regionId}')">
+                <small>${res.regionLabel}</small>
+                <h3>${res.name}</h3>
+                <p>${res.desc}</p>
+            </div>
+        `).join('');
     } else {
-        content.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">نتیجه‌ای یافت نشد.</div>';
+        content.innerHTML = '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
     }
     
     panel.hidden = false;
