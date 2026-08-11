@@ -15,15 +15,19 @@
 
     <div id="loading">
         <div class="loader"></div>
-        <b id="load-status">در حال بارگذاری مدل سه‌بعدی...</b>
+        <b id="status">در حال بارگذاری مدل...</b>
     </div>
 
     <main id="view-3d">
         <canvas id="scene"></canvas>
-        <div class="top"><h1>آناتومی تعاملی</h1></div>
         <div class="legend-wrapper">
             <div id="legend" class="legend">
-                <button data-region="head">سر</button>
+                <button data-region="head">سر و مغز</button>
+                <button data-region="heart">قلب</button>
+                <button data-region="lungs">ریه‌ها</button>
+                <button data-region="liver">کبد</button>
+                <button data-region="stomach">معده</button>
+                <button data-region="kidneys">کلیه‌ها</button>
                 <button data-region="chest">قفسه سینه</button>
                 <button data-region="abdomen">شکم</button>
                 <button data-region="pelvis">لگن</button>
@@ -42,9 +46,7 @@
 
     <main id="view-encyclopedia" class="hidden">
         <div class="container">
-            <div class="page-header">
-                <h2>دانشنامه اعضای بدن</h2>
-            </div>
+            <h2 class="page-title">دانشنامه جامع اعضای بدن</h2>
             <div id="organ-grid" class="organ-grid"></div>
         </div>
     </main>
