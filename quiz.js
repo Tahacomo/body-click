@@ -1,43 +1,23 @@
-let data = {};
-let quizScore = 0;
-let currentIndex = 0;
-let questions = [];
-let isAnswered = false;
+let data = {}, questions = [], currentIndex = 0, quizScore = 0, isAnswered = false;
 
-// ۱. لود کردن داده‌ها از فایل مشترک regions.json
 async function loadData() {
-    try {
-        const res = await fetch('./regions.json');
-        data = await res.json();
-        document.getElementById('start-quiz-btn').disabled = false;
-    } catch (e) {
-        alert("خطا در بارگذاری داده‌های آزمون!");
-    }
+    const res = await fetch('./regions.json');
+    data = await res.json();
 }
 
-function initQuiz() {
+function startQuiz() {
     questions = [];
-    quizScore = 0;
-    currentIndex = 0;
-
-    // استخراج تمام بیماری‌ها
     Object.keys(data).forEach(key => {
-        const region = data[key];
-        if (region.diseases && Array.isArray(region.diseases)) {
-            region.diseases.forEach(d => {
-                questions.push({
-                    disease: d.name,
-                    correct: region.label,
-                    img: region.image
-                });
+        if (data[key].diseases && Array.isArray(data[key].diseases)) {
+            data[key].diseases.forEach(d => {
+                questions.push({ disease: d.name, correct: data[key].label, img: data[key].image });
             });
         }
     });
 
-    // انتخاب ۱۰ سوال تصادفی
     questions.sort(() => Math.random() - 0.5);
     questions = questions.slice(0, 10);
-
+    
     document.getElementById('quiz-start-screen').classList.add('hidden');
     document.getElementById('quiz-game-screen').classList.remove('hidden');
     showQuestion();
@@ -46,19 +26,19 @@ function initQuiz() {
 function showQuestion() {
     isAnswered = false;
     const q = questions[currentIndex];
-
-    document.getElementById('q-number').innerText = currentIndex + 1;
+    
+    document.getElementById('q-number').innerText = (currentIndex + 1).toLocaleString('fa-IR');
+    document.getElementById('progress').style.width = (currentIndex * 10) + "%";
     document.getElementById('target-disease').innerText = q.disease;
-    document.getElementById('quiz-feedback').innerText = "";
     document.getElementById('organ-img').style.display = "none";
-
+    document.getElementById('quiz-feedback').innerText = "";
+    
     const optionsContainer = document.getElementById('quiz-options');
     optionsContainer.innerHTML = "";
 
-    // ساخت گزینه‌ها
     const opts = [q.correct];
-    const otherLabels = Object.values(data).map(r => r.label).filter(l => l !== q.correct);
-    opts.push(...otherLabels.sort(() => Math.random() - 0.5).slice(0, 3));
+    const others = Object.values(data).map(r => r.label).filter(l => l !== q.correct);
+    opts.push(...others.sort(() => Math.random() - 0.5).slice(0, 3));
     opts.sort(() => Math.random() - 0.5);
 
     opts.forEach(o => {
@@ -75,36 +55,41 @@ function check(btn, selected, correct, img) {
     isAnswered = true;
 
     const imgEl = document.getElementById('organ-img');
-    imgEl.src = img;
-    imgEl.style.display = "block"; // نمایش عکس عضو برای یادگیری بیشتر
+    if(img) { imgEl.src = img; imgEl.style.display = "block"; }
 
     if (selected === correct) {
         btn.classList.add('correct');
         quizScore += 10;
-        document.getElementById('current-score').innerText = quizScore;
-        document.getElementById('quiz-feedback').innerHTML = "<span style='color:green'>✅ عالی بود!</span>";
     } else {
         btn.classList.add('wrong');
-        document.getElementById('quiz-feedback').innerHTML = `<span style='color:red'>❌ اشتباه! پاسخ درست: ${correct}</span>`;
+        // هایلایت کردن گزینه درست
+        Array.from(document.querySelectorAll('.option-btn')).forEach(b => {
+            if(b.innerText === correct) b.classList.add('correct');
+        });
     }
 
     setTimeout(() => {
         currentIndex++;
         if (currentIndex < 10) showQuestion();
         else finish();
-    }, 2500);
+    }, 2000);
 }
+
+// دکمه پایان زودرس آزمون
+document.getElementById('exit-early').onclick = () => {
+    if(confirm("آیا می‌خواهید به آزمون پایان دهید؟")) finish();
+};
 
 function finish() {
     document.getElementById('quiz-game-screen').classList.add('hidden');
     document.getElementById('quiz-result-screen').classList.remove('hidden');
-    document.getElementById('final-score').innerText = quizScore;
-
+    document.getElementById('final-score').innerText = quizScore.toLocaleString('fa-IR');
+    
     const emoji = document.getElementById('result-emoji');
-    if (quizScore >= 80) emoji.innerText = "🏆 عالی! تو یک متخصصی";
-    else if (quizScore >= 50) emoji.innerText = "🥈 خوب بود، بیشتر تلاش کن";
-    else emoji.innerText = "🎓 نیاز به مطالعه بیشتر داری";
+    if (quizScore >= 80) emoji.innerText = "🌟";
+    else if (quizScore >= 50) emoji.innerText = "🙂";
+    else emoji.innerText = "📚";
 }
 
-document.getElementById('start-quiz-btn').onclick = initQuiz;
+document.getElementById('start-quiz-btn').onclick = startQuiz;
 loadData();
