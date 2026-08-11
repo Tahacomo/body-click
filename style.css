@@ -297,3 +297,48 @@ window.addEventListener('resize', () => {
 
 function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
 animate();
+
+        /* منوی ناوبری اصلی */
+.main-nav {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; padding: 6px; background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px); border-radius: 40px; z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 98, 255, 0.15); border: 1px solid white;
+}
+.main-nav button {
+    border: none; background: transparent; padding: 10px 25px; border-radius: 30px;
+    cursor: pointer; font-weight: bold; color: #5f6368; transition: 0.3s;
+}
+.main-nav button.active { background: #0062ff; color: white; }
+
+/* مدیریت نمایش بخش‌ها */
+.hidden { display: none !important; }
+
+/* استایل دانشنامه جدید */
+#view-encyclopedia {
+    padding-top: 100px; padding-bottom: 50px;
+    width: 100%; height: 100vh; overflow-y: auto; background: #f4f9ff;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.page-header { text-align: center; margin-bottom: 40px; }
+.page-header h2 { color: #0062ff; font-size: 28px; }
+
+.organ-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+.organ-card {
+    background: white; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.03); transition: 0.3s;
+    border: 1px solid #e0eaf5;
+}
+.organ-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0, 98, 255, 0.1); }
+.organ-card img { width: 100%; height: 200px; object-fit: cover; }
+.organ-card-body { padding: 20px; }
+.organ-card-body h3 { color: #0047ab; margin: 0 0 10px 0; font-size: 20px; }
+.organ-card-body p { color: #5f6368; line-height: 1.7; font-size: 14px; text-align: justify; }
+
+@media (max-width: 600px) {
+    .main-nav { width: 90%; }
+    .main-nav button { padding: 8px 15px; font-size: 12px; }
+}
