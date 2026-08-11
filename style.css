@@ -66,3 +66,29 @@ body { margin: 0; background: var(--bg); overflow-x: hidden; }
 .loader { width: 40px; height: 40px; border: 3px solid #eee; border-top-color: var(--blue); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 #loading.hide { opacity: 0; visibility: hidden; transition: 0.5s; }
+.footer-credits {
+    position: fixed;
+    bottom: 12px;
+    right: 20px;
+    font-size: 11px;
+    color: #778ea5; /* رنگ آبی خاکستری ملایم */
+    z-index: 1000;
+    pointer-events: none; /* مانع کلیک روی دکمه‌های زیرین نشود */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    background: rgba(255, 255, 255, 0.4);
+    padding: 4px 10px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+/* در موبایل کمی جابجا شود تا با دکمه‌ها تداخل نداشته باشد */
+@media (max-width: 600px) {
+    .footer-credits {
+        right: 10px;
+        bottom: 5px;
+        font-size: 10px;
+        background: transparent;
+    }
+}
