@@ -1,23 +1,44 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Interactive 3D Human Anatomy</title>
-<link rel="stylesheet" href="style.css">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>آناتومی تعاملی بدن</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
-<canvas id="scene"></canvas>
-<div id="loading"><div class="loader"></div><b>در حال بارگذاری بدن سه‌بعدی...</b></div>
-<div class="top"><h1>3D Human Anatomy</h1><p>روی ناحیه‌ای از بدن کلیک کنید</p></div>
-<div id="legend" class="legend">
-<button data-region="head">سر</button><button data-region="chest">قفسه سینه</button>
-<button data-region="abdomen">شکم</button><button data-region="pelvis">لگن</button>
-<button data-region="armLeft">بازوی چپ</button><button data-region="armRight">بازوی راست</button>
-<button data-region="legLeft">پای چپ</button><button data-region="legRight">پای راست</button>
-</div>
-<aside id="panel" hidden><button id="close">×</button><h2 id="title"></h2><div id="content"></div></aside>
-<script type="module" src="script.js"></script>
+    <canvas id="scene"></canvas>
+    
+    <div id="loading">
+        <div class="loader"></div>
+        <b>در حال بارگذاری...</b>
+    </div>
+
+    <div class="top">
+        <h1>آناتومی هوشمند بدن</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="جستجوی بیماری (مثلا: میگرن)...">
+        </div>
+    </div>
+
+    <div id="legend" class="legend">
+        <button data-region="head">سر</button>
+        <button data-region="chest">قفسه سینه</button>
+        <button data-region="abdomen">شکم</button>
+        <button data-region="pelvis">لگن</button>
+        <button data-region="armLeft">بازوی چپ</button>
+        <button data-region="armRight">بازوی راست</button>
+        <button data-region="legLeft">پای چپ</button>
+        <button data-region="legRight">پای راست</button>
+    </div>
+
+    <aside id="panel" hidden>
+        <button id="close">×</button>
+        <h2 id="title"></h2>
+        <div id="content"></div>
+    </aside>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
