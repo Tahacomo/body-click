@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>آناتومی تعاملی بدن</title>
+    <title>آناتومی هوشمند بدن</title>
     <link rel="stylesheet" href="style.css">
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
@@ -18,19 +18,21 @@
     <div class="top">
         <h1>آناتومی هوشمند بدن</h1>
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="جستجوی بیماری (مثلا: میگرن)...">
+            <input type="text" id="searchInput" placeholder="جستجوی بیماری (مثلاً: قلب، میگرن)...">
         </div>
     </div>
 
-    <div id="legend" class="legend">
-        <button data-region="head">سر</button>
-        <button data-region="chest">قفسه سینه</button>
-        <button data-region="abdomen">شکم</button>
-        <button data-region="pelvis">لگن</button>
-        <button data-region="armLeft">بازوی چپ</button>
-        <button data-region="armRight">بازوی راست</button>
-        <button data-region="legLeft">پای چپ</button>
-        <button data-region="legRight">پای راست</button>
+    <div class="legend-wrapper">
+        <div id="legend" class="legend">
+            <button data-region="head">سر</button>
+            <button data-region="chest">قفسه سینه</button>
+            <button data-region="abdomen">شکم</button>
+            <button data-region="pelvis">لگن</button>
+            <button data-region="armLeft">بازوی چپ</button>
+            <button data-region="armRight">بازوی راست</button>
+            <button data-region="legLeft">پای چپ</button>
+            <button data-region="legRight">پای راست</button>
+        </div>
     </div>
 
     <aside id="panel" hidden>
