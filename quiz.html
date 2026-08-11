@@ -3,48 +3,48 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>آزمون تشخیص بیماری - آناتومی</title>
+    <title>آزمون آناتومی</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        body { background: #f4f9ff; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .quiz-page-container { width: 90%; max-width: 600px; }
-        .organ-preview { width: 100%; height: 200px; border-radius: 20px; object-fit: cover; margin-bottom: 20px; display: none; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    </style>
 </head>
-<body>
-    <div class="quiz-page-container">
-        <div class="quiz-container">
-            <!-- صفحه شروع -->
-            <div id="quiz-start-screen">
-                <h2>مسابقه تشخیص بیماری</h2>
-                <p>دانش پزشکی خود را بسنجید! ۱۰ سوال از تمام اعضای بدن.</p>
-                <button id="start-quiz-btn" class="action-btn">شروع رقابت</button>
-                <br><br>
-                <a href="index.html" style="color: #778ea5; text-decoration: none; font-size: 14px;">← بازگشت به شبیه‌ساز</a>
-            </div>
+<body class="quiz-body">
+    <div class="quiz-card">
+        <!-- صفحه شروع -->
+        <div id="quiz-start-screen">
+            <div class="quiz-icon">🎓</div>
+            <h2>آزمون تشخیص بیماری</h2>
+            <p>دانش خود را در مورد اعضای بدن بسنجید.</p>
+            <button id="start-quiz-btn" class="btn-primary">شروع رقابت</button>
+            <a href="index.html" class="btn-link">بازگشت به خانه</a>
+        </div>
 
-            <!-- صفحه بازی -->
-            <div id="quiz-game-screen" class="hidden">
-                <div class="quiz-header">
-                    <div class="score-board">سوال <span id="q-number">1</span>/10 | امتیاز: <span id="current-score">0</span></div>
-                    <!-- تصویر راهنما بعد از پاسخ دادن ظاهر می‌شود -->
-                    <img id="organ-img" class="organ-preview" src="" alt="راهنما">
-                    <div class="question-box">بیماری <b id="target-disease" style="color: #d90429;">...</b> مربوط به کدام بخش است؟</div>
-                </div>
-
-                <div id="quiz-options" class="options-grid"></div>
-                <div id="quiz-feedback" class="feedback-text"></div>
+        <!-- صفحه بازی -->
+        <div id="quiz-game-screen" class="hidden">
+            <div class="quiz-nav">
+                <span id="q-number">۱</span> از ۱۰
+                <button id="exit-early" class="btn-exit">پایان آزمون</button>
             </div>
+            
+            <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
 
-            <!-- صفحه نتیجه -->
-            <div id="quiz-result-screen" class="hidden">
-                <h2 id="result-emoji">🏆</h2>
-                <h2 id="result-title">پایان مسابقه!</h2>
-                <p>امتیاز شما: <b id="final-score" style="font-size: 30px; color: #0062ff;">0</b> از ۱۰۰</p>
-                <button onclick="location.reload()" class="action-btn">آزمون مجدد</button>
-                <br><br>
-                <a href="index.html" class="action-btn" style="background: #778ea5; display: inline-block; text-decoration: none;">بازگشت به صفحه اصلی</a>
+            <img id="organ-img" class="organ-mini-img" src="" alt="راهنما">
+            
+            <h3 class="quiz-question">بیماری <span id="target-disease">...</span> مربوط به کدام عضو است؟</h3>
+            
+            <div id="quiz-options" class="options-list"></div>
+            
+            <div id="quiz-feedback" class="feedback-msg"></div>
+        </div>
+
+        <!-- صفحه نتیجه -->
+        <div id="quiz-result-screen" class="hidden">
+            <h2 id="result-emoji">✨</h2>
+            <h3 id="result-title">نتیجه نهایی</h3>
+            <div class="final-score-circle">
+                <span id="final-score">۰</span>
             </div>
+            <p style="color: #666;">امتیاز شما از ۱۰۰</p>
+            <button onclick="location.reload()" class="btn-primary">آزمون مجدد</button>
+            <a href="index.html" class="btn-link">خروج</a>
         </div>
     </div>
 
