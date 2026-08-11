@@ -8,16 +8,18 @@
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
-    <!-- منوی ناوبری اصلی -->
     <nav class="main-nav">
         <button id="nav-3d" class="active">شبیه‌ساز سه‌بعدی</button>
         <button id="nav-encyclopedia">دانشنامه اعضا</button>
     </nav>
 
-    <!-- بخش اول: آناتومی ۳ بعدی (محتوای قبلی شما) -->
+    <div id="loading">
+        <div class="loader"></div>
+        <b>در حال بارگذاری...</b>
+    </div>
+
     <main id="view-3d">
         <canvas id="scene"></canvas>
-        <div id="loading"><div class="loader"></div><b>در حال بارگذاری...</b></div>
         <div class="top"><h1>آناتومی هوشمند بدن</h1></div>
         <div class="legend-wrapper">
             <div id="legend" class="legend">
@@ -38,16 +40,13 @@
         </aside>
     </main>
 
-    <!-- بخش دوم: دانشنامه اعضا (بخش جدید) -->
     <main id="view-encyclopedia" class="hidden">
         <div class="container">
             <div class="page-header">
                 <h2>دانشنامه اعضای بدن</h2>
                 <p>در این بخش با عملکرد و جزئیات هر یک از اعضای بدن آشنا شوید.</p>
             </div>
-            <div id="organ-grid" class="organ-grid">
-                <!-- کارت‌های اعضا توسط جاوااسکریپت اینجا ساخته می‌شوند -->
-            </div>
+            <div id="organ-grid" class="organ-grid"></div>
         </div>
     </main>
 
