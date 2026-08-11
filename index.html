@@ -18,24 +18,33 @@
 <!-- بعد از بخش view-encyclopedia این بخش را اضافه کنید -->
 <main id="view-quiz" class="hidden">
     <div class="quiz-container">
+        <!-- صفحه شروع -->
         <div id="quiz-start-screen">
-            <h2>آزمون شناسایی اعضای بدن</h2>
-            <p>آماده‌ای دانش آناتومی خودت رو به چالش بکشی؟</p>
-            <button id="start-quiz-btn" class="action-btn">شروع آزمون</button>
+            <h2>مسابقه تشخیص بیماری</h2>
+            <p>نام بیماری را می‌بینید؛ باید بگویید مربوط به کدام عضو است.</p>
+            <button id="start-quiz-btn" class="action-btn">شروع مسابقه</button>
         </div>
 
+        <!-- صفحه بازی (تغییر یافته) -->
         <div id="quiz-game-screen" class="hidden">
             <div class="quiz-header">
                 <div class="score-board">امتیاز: <span id="current-score">0</span></div>
-                <div class="question-box">عضو مقابل را پیدا کنید: <b id="target-organ">...</b></div>
+                <div class="question-box">بیماری <b id="target-disease" style="color: #d90429;">...</b> مربوط به کدام بخش است؟</div>
             </div>
-            <p class="quiz-hint">روی مدل سه‌بعدی کلیک کنید</p>
+            
+            <!-- کانتینر گزینه‌ها -->
+            <div id="quiz-options" class="options-grid">
+                <!-- ۴ گزینه اینجا ساخته می‌شوند -->
+            </div>
+
+            <div id="quiz-feedback" class="feedback-text"></div>
         </div>
 
+        <!-- صفحه نتیجه -->
         <div id="quiz-result-screen" class="hidden">
-            <h2 id="result-text">آفرین!</h2>
-            <p>امتیاز نهایی شما: <b id="final-score">0</b></p>
-            <button onclick="location.reload()" class="action-btn">دوباره</button>
+            <h2>پایان مسابقه!</h2>
+            <p>امتیاز نهایی شما: <b id="final-score">0</b> از ۱۰۰</p>
+            <button onclick="location.reload()" class="action-btn">شروع مجدد</button>
         </div>
     </div>
 </main>
