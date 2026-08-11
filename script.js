@@ -3,42 +3,34 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
-let data = {}, active = null, renderer, scene, camera, controls, body, zones = [];
-
+let data = {}, active = null;
 const canvas = document.querySelector('#scene');
 
-// جلوگیری از ارور اگر کانواس یافت نشد
-if (!canvas) {
-    console.error("خطا: المان #scene در HTML یافت نشد.");
-} else {
-    initScene();
-}
-
-function initScene() {
-    renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+if (canvas) {
+    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
 
-    scene = new THREE.Scene();
+    const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf4f9ff);
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
-    camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
     camera.position.set(0, 1.9, 6);
 
-    controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.target.set(0, 1.8, 0);
     controls.autoRotate = true;
 
-    body = new THREE.Group();
+    const body = new THREE.Group();
     scene.add(body);
+    const zones = [];
 
     const baseMat = () => new THREE.MeshPhysicalMaterial({
         color: 0x0062ff, roughness: 0.1, transmission: 0.5, transparent: true, opacity: 0.3
     });
-
     const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.4 });
 
     function addZone(id, pos, size) {
@@ -71,7 +63,7 @@ function initScene() {
             model.scale.setScalar(4 / size.y);
             body.add(model);
             zonesForHuman();
-        } catch(e) { console.error("مدل لود نشد:", e); }
+        } catch(e) { console.error("Model Error", e); }
     }
 
     function select(id) {
@@ -82,23 +74,25 @@ function initScene() {
         document.querySelector(`[data-region="${id}"]`)?.classList.add('active');
         const zone = zones.find(z => z.userData.region === id);
         if(zone) zone.material = highlightMat;
+        
         document.querySelector('#title').textContent = data[id].label;
         const diseases = data[id].diseases;
+        
         document.querySelector('#content').innerHTML = Array.isArray(diseases) 
             ? diseases.map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('') 
             : `<p>${diseases}</p>`;
+            
         document.querySelector('#panel').hidden = false;
         controls.autoRotate = false;
     }
 
-    // ناوبری
     function initNavigation() {
         const btn3d = document.getElementById('nav-3d');
         const btnEncy = document.getElementById('nav-encyclopedia');
         const v3d = document.getElementById('view-3d');
         const vEncy = document.getElementById('view-encyclopedia');
 
-        if (btn3d && btnEncy) {
+        if(btn3d && btnEncy) {
             btn3d.onclick = () => {
                 btn3d.classList.add('active'); btnEncy.classList.remove('active');
                 v3d.classList.remove('hidden'); vEncy.classList.add('hidden');
@@ -113,7 +107,7 @@ function initScene() {
 
     function renderEncyclopedia() {
         const grid = document.getElementById('organ-grid');
-        if (!grid) return;
+        if(!grid) return;
         grid.innerHTML = Object.keys(data).map(key => {
             const item = data[key];
             return item.label ? `
@@ -133,27 +127,19 @@ function initScene() {
             data = await res.json();
             await loadModel();
             initNavigation();
-        } catch(e) { console.error("دیتا لود نشد:", e); }
+        } catch(e) { console.error(e); }
         document.querySelector('#loading')?.classList.add('hide');
     }
 
     boot();
 
-    // هندل کردن بستن پنل
-    const closeBtn = document.querySelector('#close');
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            document.querySelector('#panel').hidden = true;
-            active = null; controls.autoRotate = true;
-        };
-    }
+    document.querySelector('#close').onclick = () => {
+        document.querySelector('#panel').hidden = true;
+        active = null; controls.autoRotate = true;
+    };
 
-    // کلیک روی دکمه‌های راهنما
-    document.querySelectorAll('[data-region]').forEach(b => {
-        b.onclick = () => select(b.dataset.region);
-    });
+    document.querySelectorAll('[data-region]').forEach(b => b.onclick = () => select(b.dataset.region));
 
-    // ری‌کستر برای کلیک روی مدل
     renderer.domElement.addEventListener('click', e => {
         const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
         pointer.x = (e.clientX / innerWidth) * 2 - 1;
