@@ -33,7 +33,7 @@ const baseMat = () => new THREE.MeshPhysicalMaterial({
     thickness: 1, transparent: true, opacity: 0.3, clearcoat: 1
 });
 
-const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.3 });
+const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.4 });
 
 function addZone(id, pos, size) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
@@ -55,15 +55,17 @@ function zonesForHuman() {
 }
 
 async function load() {
-    const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
-    const model = gltf.scene;
-    model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    model.position.y = -0.5;
-    model.scale.setScalar(4 / size.y);
-    body.add(model);
-    zonesForHuman();
+    try {
+        const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
+        const model = gltf.scene;
+        model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        model.position.y = -0.5;
+        model.scale.setScalar(4 / size.y);
+        body.add(model);
+        zonesForHuman();
+    } catch(e) { console.error("Model load error", e); }
 }
 
 function select(id) {
@@ -86,49 +88,84 @@ function select(id) {
     controls.autoRotate = false;
 }
 
-window.selectFromSearch = (id) => { select(id); document.querySelector('#panel').scrollTop = 0; };
+window.selectFromSearch = (id) => { 
+    select(id); 
+    document.querySelector('#panel').scrollTop = 0; 
+};
 
-function normalizePersian(text) {
+// تابع نرمال‌سازی قدرتمند برای حل مشکل ی و ک
+function normalizeText(text) {
     if (!text) return "";
-    return text.replace(/ی/g, "ي").replace(/ک/g, "ك").replace(/آ/g, "ا").toLowerCase().trim();
+    return text
+        .replace(/[\u064A\u06CC]/g, "ی") // تبدیل هر دو نوع ی به مدل استاندارد
+        .replace(/[\u0643\u06A9]/g, "ک") // تبدیل هر دو نوع ک به مدل استاندارد
+        .replace(/آ/g, "ا")
+        .toLowerCase()
+        .trim();
 }
 
 function performSearch() {
-    const term = normalizePersian(document.querySelector('#searchInput').value);
+    const rawInput = document.querySelector('#searchInput').value;
+    const term = normalizeText(rawInput);
     const panel = document.querySelector('#panel');
     const content = document.querySelector('#content');
     const title = document.querySelector('#title');
 
-    if (term.length < 2) { if (active) select(active); else panel.hidden = true; return; }
+    // اگر کادر خالی بود و عضوی انتخاب شده بود، همان عضو را نشان بده
+    if (term.length < 2) { 
+        if (active) select(active); 
+        else panel.hidden = true; 
+        return; 
+    }
 
     let results = [];
     for (let key in data) {
         data[key].diseases.forEach(d => {
-            if (normalizePersian(d.name).includes(term) || normalizePersian(d.desc).includes(term)) {
+            const normalizedTitle = normalizeText(d.name);
+            const normalizedDesc = normalizeText(d.desc);
+            if (normalizedTitle.includes(term) || normalizedDesc.includes(term)) {
                 results.push({ ...d, regionId: key, regionName: data[key].label });
             }
         });
     }
 
-    title.textContent = 'نتایج جستجو';
-    content.innerHTML = results.length > 0 ? results.map(x => `
-        <div style="cursor:pointer; border-bottom:1px solid #eef4fb; padding:15px 0;" onclick="window.selectFromSearch('${x.regionId}')">
-            <small style="color:var(--primary-blue); font-weight:bold">${x.regionName}</small>
-            <h3 style="margin:5px 0">${x.name}</h3><p style="font-size:12px">${x.desc}</p>
-        </div>`).join('') : '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
+    title.textContent = 'نتایج جستجو: ' + rawInput;
+    if (results.length > 0) {
+        content.innerHTML = results.map(x => `
+            <div class="search-item" style="cursor:pointer; border-bottom:1px solid #eef4fb; padding:15px 0;" onclick="window.selectFromSearch('${x.regionId}')">
+                <small style="color:#0062ff; font-weight:bold">${x.regionName}</small>
+                <h3 style="margin:5px 0; color:#d93025;">${x.name}</h3>
+                <p style="font-size:12px; color:#555;">${x.desc}</p>
+            </div>`).join('');
+    } else {
+        content.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">نتیجه‌ای برای «'+rawInput+'» یافت نشد.</div>';
+    }
+    
     panel.hidden = false;
     controls.autoRotate = false;
+    panel.scrollTop = 0;
 }
 
-document.querySelector('#searchInput').addEventListener('input', performSearch);
+// گوش دادن به اینتر (Keydown بهتر از Keypress است)
+document.querySelector('#searchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // جلوگیری از رفرش احتمالی صفحه
+        performSearch();
+    }
+});
+
+// سایر رویدادها
 document.querySelector('#searchBtn').addEventListener('click', performSearch);
-document.querySelector('#searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
+document.querySelector('#searchInput').addEventListener('input', (e) => {
+    if (e.target.value.length === 0 && !active) document.querySelector('#panel').hidden = true;
+});
 
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    active = null; controls.autoRotate = true; document.querySelector('#searchInput').value = '';
+    active = null; controls.autoRotate = true; 
+    document.querySelector('#searchInput').value = '';
 };
 
 document.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => select(b.dataset.region)));
@@ -144,9 +181,10 @@ renderer.domElement.addEventListener('click', e => {
 
 async function boot() {
     try {
-        data = await (await fetch('./regions.json')).json();
+        const res = await fetch('./regions.json');
+        data = await res.json();
         await load();
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error("Boot error", e); }
     document.querySelector('#loading').classList.add('hide');
 }
 boot();
