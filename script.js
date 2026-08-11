@@ -169,103 +169,111 @@ function animate() {
 }
 
 init();
-// --- متغیرهای جدید کوییز ---
-let isQuizMode = false;
 let quizScore = 0;
-let targetId = "";
-const quizList = []; // لیست اعضایی که در کوییز شرکت داده می‌شوند
+let currentQuestionIndex = 0;
+let allQuestions = [];
+let isAnswered = false;
 
-// تابع شروع کوییز
 function startQuiz() {
-    isQuizMode = true;
+    allQuestions = [];
     quizScore = 0;
-    document.getElementById('current-score').innerText = "0";
+    currentQuestionIndex = 0;
+
+    // ۱. استخراج تمام بیماری‌ها از دیتا
+    Object.keys(data).forEach(regionKey => {
+        const region = data[regionKey];
+        if (region.diseases && Array.isArray(region.diseases)) {
+            region.diseases.forEach(d => {
+                allQuestions.push({
+                    diseaseName: d.name,
+                    correctRegion: region.label,
+                    regionId: regionKey
+                });
+            });
+        }
+    });
+
+    // ۲. مخلوط کردن سوالات و انتخاب ۱۰ سوال
+    allQuestions.sort(() => Math.random() - 0.5);
+    allQuestions = allQuestions.slice(0, 10);
+
     document.getElementById('quiz-start-screen').classList.add('hidden');
     document.getElementById('quiz-game-screen').classList.remove('hidden');
     
-    // پر کردن لیست کوییز از دیتای لود شده (فقط اعضایی که لیبل دارند)
-    Object.keys(data).forEach(key => {
-        if(data[key].label) quizList.push({id: key, name: data[key].label});
-    });
-    
-    nextQuestion();
+    showNextQuestion();
 }
 
-// انتخاب سوال بعدی
-function nextQuestion() {
-    if (quizList.length === 0) {
+function showNextQuestion() {
+    if (currentQuestionIndex >= allQuestions.length) {
         showQuizResult();
         return;
     }
-    const randomIndex = Math.floor(Math.random() * quizList.length);
-    const target = quizList.splice(randomIndex, 1)[0];
-    targetId = target.id;
-    document.getElementById('target-organ').innerText = target.name;
+
+    isAnswered = false;
+    const currentQ = allQuestions[currentQuestionIndex];
+    document.getElementById('target-disease').innerText = currentQ.diseaseName;
+    document.getElementById('quiz-feedback').innerText = "";
     
-    // مخفی کردن پنل اطلاعات در حین کوییز
-    document.getElementById('panel').hidden = true;
+    const optionsContainer = document.getElementById('quiz-options');
+    optionsContainer.innerHTML = "";
+
+    // ساخت گزینه‌ها (۱ درست + ۳ غلط)
+    const options = [currentQ.correctRegion];
+    
+    // پیدا کردن ۳ گزینه غلط تصادفی
+    const allLabels = Object.values(data).map(r => r.label).filter(l => l !== currentQ.correctRegion);
+    const shuffledLabels = allLabels.sort(() => Math.random() - 0.5);
+    options.push(...shuffledLabels.slice(0, 3));
+    
+    // مخلوط کردن نهایی گزینه‌ها
+    options.sort(() => Math.random() - 0.5);
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, opt, currentQ.correctRegion, currentQ.regionId);
+        optionsContainer.appendChild(btn);
+    });
 }
 
-// بررسی پاسخ کاربر (این بخش را به تابع کلیک روی مدل یا دکمه‌ها اضافه کنید)
-function checkQuizAnswer(clickedId) {
-    if (!isQuizMode) return;
+function checkAnswer(clickedBtn, selected, correct, regionId) {
+    if (isAnswered) return;
+    isAnswered = true;
 
-    if (clickedId === targetId) {
-        // پاسخ صحیح
+    if (selected === correct) {
+        clickedBtn.classList.add('correct');
         quizScore += 10;
         document.getElementById('current-score').innerText = quizScore;
-        alert("آفرین! درست بود ✅");
-        nextQuestion();
+        document.getElementById('quiz-feedback').innerText = "✅ کاملاً درسته!";
+        // هایلایت کردن عضو در مدل ۳ بعدی
+        if(typeof select === "function") select(regionId); 
     } else {
-        // پاسخ غلط
-        alert("اشتباه بود! دوباره تلاش کن ❌");
+        clickedBtn.classList.add('wrong');
+        document.getElementById('quiz-feedback').innerText = `❌ اشتباه بود! پاسخ: ${correct}`;
     }
+
+    // وقفه کوتاه قبل از سوال بعد
+    setTimeout(() => {
+        currentQuestionIndex++;
+        showNextQuestion();
+    }, 2000);
 }
 
-// پایان کوییز
 function showQuizResult() {
-    isQuizMode = false;
     document.getElementById('quiz-game-screen').classList.add('hidden');
     document.getElementById('quiz-result-screen').classList.remove('hidden');
     document.getElementById('final-score').innerText = quizScore;
 }
 
-// --- مدیریت ناوبری (آپدیت شده) ---
-const navQuiz = document.getElementById('nav-quiz');
-const viewQuiz = document.getElementById('view-quiz');
-const view3d = document.getElementById('view-3d');
-const viewEncy = document.getElementById('view-encyclopedia');
-
-navQuiz.onclick = () => {
-    // برای کوییز، مدل سه بعدی باید در پس زمینه باشد
-    view3d.classList.remove('hidden');
-    viewEncy.classList.add('hidden');
-    viewQuiz.classList.remove('hidden');
-    
-    // فعال کردن دکمه منو
-    document.querySelectorAll('.main-nav button').forEach(b => b.classList.remove('active'));
-    navQuiz.classList.add('active');
-};
-
-// به تابع select(id) یا رویداد کلیک مدل سه‌بعدی این خط را اضافه کنید:
-// if (isQuizMode) { checkQuizAnswer(id); return; }
-
+// اتصال دکمه شروع
 document.getElementById('start-quiz-btn').onclick = startQuiz;
 
-// اصلاح تابع کلیک روی مدل در انتهای script.js برای پشتیبانی از کوییز:
-renderer.domElement.addEventListener('click', e => {
-    const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
-    pointer.x = (e.clientX / innerWidth) * 2 - 1;
-    pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-    ray.setFromCamera(pointer, camera);
-    const hit = ray.intersectObjects(zones)[0];
-    
-    if (hit) {
-        const id = hit.object.userData.region;
-        if (isQuizMode) {
-            checkQuizAnswer(id);
-        } else {
-            select(id);
-        }
-    }
-});
+// آپدیت بخش ناوبری برای کوییز
+document.getElementById('nav-quiz').onclick = () => {
+    document.getElementById('view-3d').classList.remove('hidden');
+    document.getElementById('view-encyclopedia').classList.add('hidden');
+    document.getElementById('view-quiz').classList.remove('hidden');
+    document.querySelectorAll('.main-nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('nav-quiz').classList.add('active');
+};
