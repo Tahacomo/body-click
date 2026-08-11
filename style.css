@@ -171,3 +171,80 @@ body { margin: 0; background: var(--bg); overflow-x: hidden; }
     align-items: center; justify-content: center; font-size: 30px; 
     font-weight: bold; color: #0062ff;
 }
+
+/* استایل‌های اختصاصی صفحه دانشنامه */
+.nav-back-btn {
+    text-decoration: none;
+    color: #5f6368;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+.nav-back-btn:hover { background: #f0f7ff; color: #0062ff; }
+
+.organ-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    padding-bottom: 50px;
+}
+
+.organ-card {
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    border: 1px solid #eef4fb;
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.organ-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 98, 255, 0.08);
+}
+
+.organ-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 1px solid #f0f7ff;
+}
+
+.organ-card-body { padding: 25px; }
+
+.organ-card-body h3 { color: #0062ff; margin: 0 0 15px 0; font-size: 22px; }
+
+.info-text {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.8;
+    text-align: justify;
+    margin-bottom: 20px;
+}
+
+.disease-list-mini {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
+}
+
+.disease-list-mini h4 { color: #adb5bd; font-size: 12px; margin-bottom: 12px; letter-spacing: 1px; }
+
+.disease-item-ency { margin-bottom: 15px; }
+
+.disease-item-ency b {
+    color: #d90429; /* نام بیماری قرمز */
+    display: block;
+    font-size: 15px;
+    margin-bottom: 3px;
+}
+
+.disease-item-ency span {
+    color: #000000; /* توضیحات مشکی */
+    font-size: 13px;
+    line-height: 1.5;
+    display: block;
+}
+
+.loader-wrap { grid-column: 1 / -1; display: flex; justify-content: center; padding: 50px; }
