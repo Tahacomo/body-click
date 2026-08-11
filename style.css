@@ -1,67 +1,73 @@
 :root {
     --primary-blue: #0062ff;
-    --bg-light: #f4f9ff;
-    --glass-white: rgba(255, 255, 255, 0.9);
+    --disease-red: #d90429;
+    --desc-black: #000000;
+    --bg-light: #f8fbff;
+    --glass: rgba(255, 255, 255, 0.92);
 }
 
 * { box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
-body { margin: 0; background: var(--bg-light); color: #1d2d3d; overflow-x: hidden; width: 100%; }
+body { margin: 0; background: var(--bg-light); color: #2b2d42; overflow-x: hidden; width: 100%; }
 
-/* ناوبری */
+/* Navigation */
 .main-nav {
-    position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 8px; padding: 6px; background: var(--glass-white);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; padding: 6px; background: var(--glass);
     backdrop-filter: blur(10px); border-radius: 40px; z-index: 2000;
-    box-shadow: 0 8px 25px rgba(0, 98, 255, 0.15); border: 1px solid white;
+    box-shadow: 0 10px 30px rgba(0, 98, 255, 0.1); border: 1px solid white;
 }
 .main-nav button {
-    border: none; background: transparent; padding: 10px 20px; border-radius: 30px;
+    border: none; background: transparent; padding: 10px 22px; border-radius: 30px;
     cursor: pointer; font-weight: bold; color: #5f6368; transition: 0.3s;
 }
 .main-nav button.active { background: var(--primary-blue); color: white; }
 
 .hidden { display: none !important; }
 
-/* بخش 3D */
+/* 3D View */
 #view-3d { width: 100vw; height: 100vh; position: relative; }
-#scene { width: 100%; height: 100%; display: block; }
-
-.top { position: fixed; top: 85px; left: 0; right: 0; text-align: center; pointer-events: none; }
-.top h1 { font-size: 18px; color: var(--primary-blue); }
+#scene { width: 100%; height: 100%; display: block; outline: none; }
+.top { position: fixed; top: 90px; left: 0; right: 0; text-align: center; pointer-events: none; }
+.top h1 { font-size: 18px; color: var(--primary-blue); margin: 0; }
 
 .legend-wrapper { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 10; }
 .legend {
-    display: flex; gap: 5px; padding: 8px 15px; background: #0047ab; border-radius: 100px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow-x: auto; max-width: 95vw;
+    display: flex; gap: 6px; padding: 10px 20px; background: #0047ab; border-radius: 100px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow-x: auto; max-width: 90vw;
 }
 .legend::-webkit-scrollbar { display: none; }
 .legend button {
-    background: transparent; border: none; color: white; padding: 10px 15px;
-    border-radius: 50px; cursor: pointer; white-space: nowrap; font-size: 13px;
+    background: transparent; border: none; color: white; padding: 10px 18px;
+    border-radius: 50px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold;
 }
 .legend button.active { background: white; color: #0047ab; }
 
+/* Info Panel */
 #panel {
-    position: fixed; right: 20px; top: 90px; bottom: 110px; width: 340px;
-    background: var(--glass-white); backdrop-filter: blur(15px); border-radius: 20px;
-    padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); overflow-y: auto; z-index: 100;
+    position: fixed; right: 25px; top: 100px; bottom: 120px; width: 350px;
+    background: var(--glass); backdrop-filter: blur(15px); border-radius: 24px;
+    padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); overflow-y: auto; z-index: 100;
 }
-#close { position: absolute; left: 10px; top: 10px; border: none; border-radius: 50%; cursor: pointer; }
+#close { position: absolute; left: 15px; top: 15px; border: none; background: #eee; border-radius: 50%; cursor: pointer; padding: 5px 10px; }
+#panel h2 { color: var(--primary-blue); border-bottom: 2px solid #eef4fb; padding-bottom: 12px; margin-top: 0; }
 
-/* بخش دانشنامه */
-#view-encyclopedia { padding: 100px 0; min-height: 100vh; width: 100%; }
+/* Disease Styling */
+#content h3 { color: var(--disease-red); margin: 25px 0 6px; font-size: 17px; font-weight: bold; }
+#content p { color: var(--desc-black); line-height: 1.8; font-size: 14px; margin: 0; text-align: justify; }
+
+/* Encyclopedia */
+#view-encyclopedia { padding: 120px 0; min-height: 100vh; width: 100%; }
 .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-.organ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.organ-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eef4fb; }
-.organ-card img { width: 100%; height: 180px; object-fit: cover; }
-.organ-card-body { padding: 15px; }
+.organ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+.organ-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 1px solid #eef4fb; }
+.organ-card img { width: 100%; height: 200px; object-fit: cover; }
+.organ-card-body { padding: 20px; }
 .organ-card-body h3 { color: var(--primary-blue); margin: 0 0 10px 0; }
-.organ-card-body p { font-size: 13px; color: #5f6368; line-height: 1.6; text-align: justify; }
 
-/* لودینگ */
-#loading { position: fixed; inset: 0; background: var(--bg-light); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; }
-.loader { width: 40px; height: 40px; border: 3px solid #d0e3ff; border-top: 3px solid var(--primary-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+/* Loading */
+#loading { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; }
+.loader { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-#loading.hide { opacity: 0; visibility: hidden; transition: 0.5s; }
+#loading.hide { opacity: 0; visibility: hidden; transition: 0.8s; }
 
-@media (max-width: 600px) { #panel { left: 10px; right: 10px; width: auto; top: auto; height: 40vh; } }
+@media (max-width: 600px) { #panel { left: 15px; right: 15px; width: auto; height: 45vh; top: auto; } }
