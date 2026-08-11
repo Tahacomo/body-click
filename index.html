@@ -8,42 +8,48 @@
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
-    <canvas id="scene"></canvas>
-    
-    <div id="loading">
-        <div class="loader"></div>
-        <b>در حال بارگذاری...</b>
-    </div>
+    <!-- منوی ناوبری اصلی -->
+    <nav class="main-nav">
+        <button id="nav-3d" class="active">شبیه‌ساز سه‌بعدی</button>
+        <button id="nav-encyclopedia">دانشنامه اعضا</button>
+    </nav>
 
-    <div class="top">
-        <h1>آناتومی هوشمند بدن</h1>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="جستجوی بیماری...">
-            <button id="searchBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <span>جستجو</span>
-            </button>
+    <!-- بخش اول: آناتومی ۳ بعدی (محتوای قبلی شما) -->
+    <main id="view-3d">
+        <canvas id="scene"></canvas>
+        <div id="loading"><div class="loader"></div><b>در حال بارگذاری...</b></div>
+        <div class="top"><h1>آناتومی هوشمند بدن</h1></div>
+        <div class="legend-wrapper">
+            <div id="legend" class="legend">
+                <button data-region="head">سر</button>
+                <button data-region="chest">قفسه سینه</button>
+                <button data-region="abdomen">شکم</button>
+                <button data-region="pelvis">لگن</button>
+                <button data-region="armLeft">بازوی چپ</button>
+                <button data-region="armRight">بازوی راست</button>
+                <button data-region="legLeft">پای چپ</button>
+                <button data-region="legRight">پای راست</button>
+            </div>
         </div>
-    </div>
+        <aside id="panel" hidden>
+            <button id="close">×</button>
+            <h2 id="title"></h2>
+            <div id="content"></div>
+        </aside>
+    </main>
 
-    <div class="legend-wrapper">
-        <div id="legend" class="legend">
-            <button data-region="head">سر</button>
-            <button data-region="chest">قفسه سینه</button>
-            <button data-region="abdomen">شکم</button>
-            <button data-region="pelvis">لگن</button>
-            <button data-region="armLeft">بازوی چپ</button>
-            <button data-region="armRight">بازوی راست</button>
-            <button data-region="legLeft">پای چپ</button>
-            <button data-region="legRight">پای راست</button>
+    <!-- بخش دوم: دانشنامه اعضا (بخش جدید) -->
+    <main id="view-encyclopedia" class="hidden">
+        <div class="container">
+            <div class="page-header">
+                <h2>دانشنامه اعضای بدن</h2>
+                <p>در این بخش با عملکرد و جزئیات هر یک از اعضای بدن آشنا شوید.</p>
+            </div>
+            <div id="organ-grid" class="organ-grid">
+                <!-- کارت‌های اعضا توسط جاوااسکریپت اینجا ساخته می‌شوند -->
+            </div>
         </div>
-    </div>
-
-    <aside id="panel" hidden>
-        <button id="close">×</button>
-        <h2 id="title"></h2>
-        <div id="content"></div>
-    </aside>
+    </main>
 
     <script type="module" src="script.js"></script>
 </body>
