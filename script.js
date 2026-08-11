@@ -28,16 +28,12 @@ const body = new THREE.Group();
 scene.add(body);
 const zones = [];
 
-// متریال اصلی (آبی شیشه‌ای)
 const baseMat = () => new THREE.MeshPhysicalMaterial({
     color: 0x0062ff, roughness: 0.1, transmission: 0.5, 
     thickness: 1, transparent: true, opacity: 0.3, clearcoat: 1
 });
 
-// متریال هایلایت (قرمز برای انتخاب)
-const highlightMat = new THREE.MeshBasicMaterial({
-    color: 0xff3300, transparent: true, opacity: 0.3
-});
+const highlightMat = new THREE.MeshBasicMaterial({ color: 0xff3300, transparent: true, opacity: 0.3 });
 
 function addZone(id, pos, size) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
@@ -70,24 +66,18 @@ async function load() {
     zonesForHuman();
 }
 
-// تابع انتخاب عضو (اصلاح شده)
 function select(id) {
     if (!data[id]) return;
-    
-    // ریست کردن هایلایت قبلی دکمه‌ها
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
-    // ریست کردن هایلایت مدل ۳ بعدی
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
 
     active = id;
     const btn = document.querySelector(`[data-region="${id}"]`);
     if(btn) btn.classList.add('active');
 
-    // هایلایت کردن بخش ۳ بعدی
     const zone = zones.find(z => z.userData.region === id);
     if(zone) zone.material = highlightMat;
     
-    // نمایش اطلاعات در پنل
     document.querySelector('#title').textContent = data[id].label;
     document.querySelector('#content').innerHTML = data[id].diseases
         .map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
@@ -96,81 +86,53 @@ function select(id) {
     controls.autoRotate = false;
 }
 
-// متصل کردن تابع به پنجره (Window) برای اینکه از داخل HTML قابل دسترسی باشد
-window.selectFromSearch = (id) => {
-    select(id);
-    // اسکرول کردن پنل به بالا
-    document.querySelector('#panel').scrollTop = 0;
-};
+window.selectFromSearch = (id) => { select(id); document.querySelector('#panel').scrollTop = 0; };
 
-// تابع نرمال‌سازی متن فارسی برای جستجوی دقیق‌تر
 function normalizePersian(text) {
     if (!text) return "";
-    return text
-        .replace(/ی/g, "ي")
-        .replace(/ک/g, "ك")
-        .replace(/آ/g, "ا")
-        .toLowerCase()
-        .trim();
+    return text.replace(/ی/g, "ي").replace(/ک/g, "ك").replace(/آ/g, "ا").toLowerCase().trim();
 }
 
-// منطق جستجو (اصلاح شده)
-document.querySelector('#searchInput').addEventListener('input', (e) => {
-    const term = normalizePersian(e.target.value);
+function performSearch() {
+    const term = normalizePersian(document.querySelector('#searchInput').value);
     const panel = document.querySelector('#panel');
     const content = document.querySelector('#content');
     const title = document.querySelector('#title');
 
-    if (term.length < 2) {
-        if (active) select(active);
-        else panel.hidden = true;
-        return;
-    }
+    if (term.length < 2) { if (active) select(active); else panel.hidden = true; return; }
 
     let results = [];
     for (let key in data) {
         data[key].diseases.forEach(d => {
-            const nameMatch = normalizePersian(d.name).includes(term);
-            const descMatch = normalizePersian(d.desc).includes(term);
-            if (nameMatch || descMatch) {
+            if (normalizePersian(d.name).includes(term) || normalizePersian(d.desc).includes(term)) {
                 results.push({ ...d, regionId: key, regionName: data[key].label });
             }
         });
     }
 
     title.textContent = 'نتایج جستجو';
-    if (results.length > 0) {
-        content.innerHTML = results.map(x => `
-            <div class="search-result-item" 
-                 style="cursor:pointer; border-bottom:1px solid #e0eaf5; padding:15px 0; transition:0.2s" 
-                 onclick="window.selectFromSearch('${x.regionId}')">
-                <small style="color:var(--primary-blue); font-weight:bold">${x.regionName}</small>
-                <h3 style="margin:5px 0">${x.name}</h3>
-                <p style="font-size:12px">${x.desc}</p>
-            </div>`).join('');
-    } else {
-        content.innerHTML = '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
-    }
+    content.innerHTML = results.length > 0 ? results.map(x => `
+        <div style="cursor:pointer; border-bottom:1px solid #eef4fb; padding:15px 0;" onclick="window.selectFromSearch('${x.regionId}')">
+            <small style="color:var(--primary-blue); font-weight:bold">${x.regionName}</small>
+            <h3 style="margin:5px 0">${x.name}</h3><p style="font-size:12px">${x.desc}</p>
+        </div>`).join('') : '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
     panel.hidden = false;
     controls.autoRotate = false;
-});
+}
 
-// بستن پنل
+document.querySelector('#searchInput').addEventListener('input', performSearch);
+document.querySelector('#searchBtn').addEventListener('click', performSearch);
+document.querySelector('#searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
+
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    active = null;
-    controls.autoRotate = true;
-    document.querySelector('#searchInput').value = '';
+    active = null; controls.autoRotate = true; document.querySelector('#searchInput').value = '';
 };
 
-// کلیک روی دکمه‌های منو
-document.querySelectorAll('[data-region]').forEach(b => {
-    b.addEventListener('click', () => select(b.dataset.region));
-});
+document.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => select(b.dataset.region)));
 
-// کلیک مستقیم روی مدل ۳ بعدی
 const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
 renderer.domElement.addEventListener('click', e => {
     pointer.x = (e.clientX / innerWidth) * 2 - 1;
@@ -180,31 +142,19 @@ renderer.domElement.addEventListener('click', e => {
     if (hit) select(hit.object.userData.region);
 });
 
-// اجرای اولیه
 async function boot() {
     try {
-        const res = await fetch('./regions.json');
-        if (!res.ok) throw new Error('فایل JSON پیدا نشد');
-        data = await res.json();
+        data = await (await fetch('./regions.json')).json();
         await load();
-    } catch(e) { 
-        console.error(e);
-        document.querySelector('#loading b').textContent = 'خطا در بارگذاری اطلاعات';
-    }
+    } catch(e) { console.error(e); }
     document.querySelector('#loading').classList.add('hide');
 }
-
 boot();
 
 window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
 });
 
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
+function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
 animate();
