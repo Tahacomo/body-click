@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>دانشنامه جامع آناتومی</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #f8fbff; padding-top: 80px; }
+        .encyclopedia-header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.6s ease;
+        }
+        .encyclopedia-header h1 { color: #0062ff; font-size: 32px; margin: 0; }
+        .encyclopedia-header p { color: #778ea5; margin-top: 10px; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- هدر ساده و مینیمال -->
+    <nav class="main-nav">
+        <a href="index.html" class="nav-back-btn">← بازگشت به شبیه‌ساز</a>
+        <div style="font-weight: bold; color: #0062ff;">دانشنامه اعضا</div>
+        <a href="quiz.html" class="nav-back-btn">شرکت در آزمون</a>
+    </nav>
+
+    <div class="container">
+        <header class="encyclopedia-header">
+            <h1>دانشنامه جامع اعضای بدن</h1>
+            <p>بررسی علمی عملکرد اندام‌ها و بیماری‌های مرتبط</p>
+        </header>
+
+        <!-- محل قرارگیری کارت‌ها -->
+        <div id="organ-grid" class="organ-grid">
+            <div class="loader-wrap"><div class="loader"></div></div>
+        </div>
+    </div>
+
+    <div class="footer-credits">ساخته شده توسط @Tahacomo</div>
+
+    <script src="encyclopedia.js"></script>
+</body>
+</html>
