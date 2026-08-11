@@ -92,3 +92,39 @@ body { margin: 0; background: var(--bg); overflow-x: hidden; }
         background: transparent;
     }
 }
+/* استایل‌های بخش کوییز */
+#view-quiz {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(244, 249, 255, 0.8); backdrop-filter: blur(5px);
+}
+
+.quiz-container {
+    background: white; padding: 40px; border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0, 98, 255, 0.1);
+    text-align: center; max-width: 500px; width: 90%;
+}
+
+.quiz-header { margin-bottom: 20px; }
+.score-board { color: var(--primary-blue); font-weight: bold; margin-bottom: 10px; }
+.question-box { font-size: 20px; color: #1d2d3d; }
+.question-box b { color: #d90429; font-size: 24px; border-bottom: 3px solid; }
+
+.action-btn {
+    background: var(--primary-blue); color: white; border: none;
+    padding: 12px 40px; border-radius: 30px; cursor: pointer;
+    font-weight: bold; font-size: 16px; margin-top: 20px; transition: 0.3s;
+}
+.action-btn:hover { transform: scale(1.05); background: #004dc0; }
+
+.quiz-hint { color: #778ea5; font-size: 13px; margin-top: 20px; animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* فیدبک‌های تصویری روی مدل */
+.correct-flash { background: rgba(0, 255, 0, 0.2) !important; }
+.wrong-flash { background: rgba(255, 0, 0, 0.2) !important; }
