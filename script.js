@@ -65,11 +65,25 @@ async function load() {
         model.scale.setScalar(4 / size.y);
         body.add(model);
         zonesForHuman();
-    } catch(e) { console.error("Model Error", e); }
+    } catch(e) { console.error("Error loading model:", e); }
+}
+
+// تابع نرمال‌سازی متن برای جستجوی دقیق (ی و ک)
+function normalize(text) {
+    if (!text) return "";
+    return text
+        .toString()
+        .replace(/[\u064A\u06CC]/g, "ی") // ی عربی و فارسی
+        .replace(/[\u0643\u06A9]/g, "ک") // ک عربی و فارسی
+        .replace(/آ/g, "ا")
+        .trim()
+        .toLowerCase();
 }
 
 function select(id) {
     if (!data[id]) return;
+    
+    // ریست کردن استایل‌ها
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
 
@@ -82,28 +96,17 @@ function select(id) {
     
     document.querySelector('#title').textContent = data[id].label;
     document.querySelector('#content').innerHTML = data[id].diseases
-        .map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
+        .map(x => `<div class="disease-box"><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
     
     document.querySelector('#panel').hidden = false;
     controls.autoRotate = false;
 }
 
-window.selectFromSearch = (id) => { 
-    select(id); 
+// اتصال تابع به Window برای کارکردن در HTML onclick
+window.selectFromSearch = (id) => {
+    select(id);
     document.querySelector('#panel').scrollTop = 0;
 };
-
-// نرمال‌سازی فوق پیشرفته برای کیبوردهای مختلف
-function normalizeText(text) {
-    if (!text) return "";
-    return text
-        .replace(/[\u064A\u06CC]/g, "ی")
-        .replace(/[\u0643\u06A9]/g, "ک")
-        .replace(/آ/g, "ا")
-        .replace(/\u200C/g, " ") // تبدیل نیم‌فاصله به فاصله برای جستجوی بهتر
-        .toLowerCase()
-        .trim();
-}
 
 function performSearch() {
     const inputField = document.querySelector('#searchInput');
@@ -126,25 +129,20 @@ function performSearch() {
     }
 
     let results = [];
-    
-    // جستجو در تمام بخش‌ها
+    // جستجو در تمام بخش‌های فایل JSON
     Object.keys(data).forEach(regionKey => {
         const region = data[regionKey];
-        
-        // --- بخش اصلاح شده: چک می‌کنیم که حتما لیست بیماری وجود داشته باشد ---
-        if (region && Array.isArray(region.diseases)) {
-            region.diseases.forEach(disease => {
-                const nName = normalize(disease.name);
-                const nDesc = normalize(disease.desc);
-                if (nName.includes(term) || nDesc.includes(term)) {
-                    results.push({
-                        ...disease,
-                        regionId: regionKey,
-                        regionLabel: region.label
-                    });
-                }
-            });
-        }
+        region.diseases.forEach(disease => {
+            const nName = normalize(disease.name);
+            const nDesc = normalize(disease.desc);
+            if (nName.includes(term) || nDesc.includes(term)) {
+                results.push({
+                    ...disease,
+                    regionId: regionKey,
+                    regionLabel: region.label
+                });
+            }
+        });
     });
 
     title.textContent = 'نتایج یافت شده (' + results.length + ')';
@@ -165,29 +163,33 @@ function performSearch() {
     controls.autoRotate = false;
 }
 
-// گوش دادن لحظه‌ای به تایپ کاربر (Input Event)
-document.querySelector('#searchInput').addEventListener('input', performSearch);
-
-// فشردن اینتر (برای اطمینان)
-document.querySelector('#searchInput').addEventListener('keydown', (e) => {
+// رویدادهای جستجو
+const searchInput = document.querySelector('#searchInput');
+searchInput.addEventListener('input', performSearch); // جستجوی لحظه‌ای
+searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
         performSearch();
     }
 });
-
 document.querySelector('#searchBtn').addEventListener('click', performSearch);
 
+// بستن پنل
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
     document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
     zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-    active = null; controls.autoRotate = true; 
+    active = null; 
+    controls.autoRotate = true; 
     document.querySelector('#searchInput').value = '';
 };
 
-document.querySelectorAll('[data-region]').forEach(b => b.addEventListener('click', () => select(b.dataset.region)));
+// کلیک روی دکمه‌های منو
+document.querySelectorAll('[data-region]').forEach(b => {
+    b.addEventListener('click', () => select(b.dataset.region));
+});
 
+// کلیک روی مدل سه‌بعدی
 const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
 renderer.domElement.addEventListener('click', e => {
     pointer.x = (e.clientX / innerWidth) * 2 - 1;
@@ -200,17 +202,27 @@ renderer.domElement.addEventListener('click', e => {
 async function boot() {
     try {
         const res = await fetch('./regions.json');
+        if (!res.ok) throw new Error("JSON not found");
         data = await res.json();
         await load();
-    } catch(e) { console.error("Boot error", e); }
+    } catch(e) { 
+        console.error("Boot Error:", e);
+        document.querySelector('#loading b').textContent = "خطا در بارگذاری اطلاعات!";
+    }
     document.querySelector('#loading').classList.add('hide');
 }
+
 boot();
 
 window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
 });
 
-function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
 animate();
