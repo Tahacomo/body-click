@@ -8,10 +8,9 @@ const canvas = document.querySelector('#scene');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf0f7ff); // پس‌زمینه روشن
+scene.background = new THREE.Color(0xf4f9ff);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
@@ -25,19 +24,19 @@ controls.target.set(0, 1.8, 0);
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.5;
 
-// نورپردازی برای تم روشن
-scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 10, 7);
-scene.add(light);
-
 const body = new THREE.Group();
 scene.add(body);
 const zones = [];
 
+// متریال اصلی (آبی شیشه‌ای)
 const baseMat = () => new THREE.MeshPhysicalMaterial({
-    color: 0x3a99ff, roughness: 0.2, transmission: 0.7, thickness: 1, 
-    transparent: true, opacity: 0.4, clearcoat: 1
+    color: 0x0062ff, roughness: 0.1, transmission: 0.5, 
+    thickness: 1, transparent: true, opacity: 0.3, clearcoat: 1
+});
+
+// متریال هایلایت (قرمز برای انتخاب)
+const highlightMat = new THREE.MeshBasicMaterial({
+    color: 0xff3300, transparent: true, opacity: 0.3
 });
 
 function addZone(id, pos, size) {
@@ -60,25 +59,35 @@ function zonesForHuman() {
 }
 
 async function load() {
-    try {
-        const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
-        const model = gltf.scene;
-        model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        model.position.y = -0.5; 
-        model.scale.setScalar(4 / size.y);
-        body.add(model);
-        zonesForHuman();
-    } catch(e) { console.error("Model load error", e); }
+    const gltf = await new GLTFLoader().loadAsync('./models/human.glb');
+    const model = gltf.scene;
+    model.traverse(o => { if(o.isMesh) o.material = baseMat(); });
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    model.position.y = -0.5;
+    model.scale.setScalar(4 / size.y);
+    body.add(model);
+    zonesForHuman();
 }
 
+// تابع انتخاب عضو (اصلاح شده)
 function select(id) {
     if (!data[id]) return;
-    if (active) document.querySelector(`[data-region="${active}"]`)?.classList.remove('active');
-    active = id;
-    document.querySelector(`[data-region="${id}"]`)?.classList.add('active');
     
+    // ریست کردن هایلایت قبلی دکمه‌ها
+    document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
+    // ریست کردن هایلایت مدل ۳ بعدی
+    zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
+
+    active = id;
+    const btn = document.querySelector(`[data-region="${id}"]`);
+    if(btn) btn.classList.add('active');
+
+    // هایلایت کردن بخش ۳ بعدی
+    const zone = zones.find(z => z.userData.region === id);
+    if(zone) zone.material = highlightMat;
+    
+    // نمایش اطلاعات در پنل
     document.querySelector('#title').textContent = data[id].label;
     document.querySelector('#content').innerHTML = data[id].diseases
         .map(x => `<div><h3>${x.name}</h3><p>${x.desc}</p></div>`).join('');
@@ -87,15 +96,33 @@ function select(id) {
     controls.autoRotate = false;
 }
 
-// قابلیت جستجو
+// متصل کردن تابع به پنجره (Window) برای اینکه از داخل HTML قابل دسترسی باشد
+window.selectFromSearch = (id) => {
+    select(id);
+    // اسکرول کردن پنل به بالا
+    document.querySelector('#panel').scrollTop = 0;
+};
+
+// تابع نرمال‌سازی متن فارسی برای جستجوی دقیق‌تر
+function normalizePersian(text) {
+    if (!text) return "";
+    return text
+        .replace(/ی/g, "ي")
+        .replace(/ک/g, "ك")
+        .replace(/آ/g, "ا")
+        .toLowerCase()
+        .trim();
+}
+
+// منطق جستجو (اصلاح شده)
 document.querySelector('#searchInput').addEventListener('input', (e) => {
-    const term = e.target.value.trim().toLowerCase();
+    const term = normalizePersian(e.target.value);
     const panel = document.querySelector('#panel');
     const content = document.querySelector('#content');
     const title = document.querySelector('#title');
 
     if (term.length < 2) {
-        if(active) select(active);
+        if (active) select(active);
         else panel.hidden = true;
         return;
     }
@@ -103,40 +130,47 @@ document.querySelector('#searchInput').addEventListener('input', (e) => {
     let results = [];
     for (let key in data) {
         data[key].diseases.forEach(d => {
-            if (d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term)) {
-                results.push({ ...d, regionName: data[key].label, regionId: key });
+            const nameMatch = normalizePersian(d.name).includes(term);
+            const descMatch = normalizePersian(d.desc).includes(term);
+            if (nameMatch || descMatch) {
+                results.push({ ...d, regionId: key, regionName: data[key].label });
             }
         });
     }
 
-    title.textContent = `نتایج جستجو برای: ${term}`;
-    content.innerHTML = results.length > 0 
-        ? results.map(x => `<div class="search-item" style="cursor:pointer; border-bottom:1px solid #eee; padding-bottom:10px" onclick="window.highlightAndSelect('${x.regionId}')">
-            <small style="color:#007bff">${x.regionName}</small>
-            <h3>${x.name}</h3><p>${x.desc}</p>
-          </div>`).join('')
-        : '<p>نتیجه‌ای یافت نشد.</p>';
-    
+    title.textContent = 'نتایج جستجو';
+    if (results.length > 0) {
+        content.innerHTML = results.map(x => `
+            <div class="search-result-item" 
+                 style="cursor:pointer; border-bottom:1px solid #e0eaf5; padding:15px 0; transition:0.2s" 
+                 onclick="window.selectFromSearch('${x.regionId}')">
+                <small style="color:var(--primary-blue); font-weight:bold">${x.regionName}</small>
+                <h3 style="margin:5px 0">${x.name}</h3>
+                <p style="font-size:12px">${x.desc}</p>
+            </div>`).join('');
+    } else {
+        content.innerHTML = '<p style="text-align:center; padding:20px;">موردی یافت نشد.</p>';
+    }
     panel.hidden = false;
     controls.autoRotate = false;
 });
 
-// تابعی برای انتخاب از طریق نتایج جستجو
-window.highlightAndSelect = (id) => {
-    select(id);
-};
-
+// بستن پنل
 document.querySelector('#close').onclick = () => {
     document.querySelector('#panel').hidden = true;
-    if(active) document.querySelector(`[data-region="${active}"]`)?.classList.remove('active');
+    document.querySelectorAll('[data-region]').forEach(b => b.classList.remove('active'));
+    zones.forEach(z => z.material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
     active = null;
     controls.autoRotate = true;
     document.querySelector('#searchInput').value = '';
 };
 
-document.querySelectorAll('[data-region]').forEach(b => b.onclick = () => select(b.dataset.region));
+// کلیک روی دکمه‌های منو
+document.querySelectorAll('[data-region]').forEach(b => {
+    b.addEventListener('click', () => select(b.dataset.region));
+});
 
-// Raycaster برای کلیک روی مدل
+// کلیک مستقیم روی مدل ۳ بعدی
 const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
 renderer.domElement.addEventListener('click', e => {
     pointer.x = (e.clientX / innerWidth) * 2 - 1;
@@ -146,18 +180,22 @@ renderer.domElement.addEventListener('click', e => {
     if (hit) select(hit.object.userData.region);
 });
 
+// اجرای اولیه
 async function boot() {
     try {
         const res = await fetch('./regions.json');
+        if (!res.ok) throw new Error('فایل JSON پیدا نشد');
         data = await res.json();
         await load();
     } catch(e) { 
-        document.querySelector('#loading b').textContent = 'خطا در بارگذاری داده‌ها';
+        console.error(e);
+        document.querySelector('#loading b').textContent = 'خطا در بارگذاری اطلاعات';
     }
     document.querySelector('#loading').classList.add('hide');
 }
 
 boot();
+
 window.addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
