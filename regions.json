@@ -298,7 +298,7 @@
   "breasts": {
     "label": "پستان‌ها",
     "info": "پستان‌ها غدد شیری تکامل یافته‌ای هستند که تحت تأثیر مستقیم هورمون‌های استروژن و پروژسترون قرار دارند. این بخش علاوه بر نقش بازتولیدی، یکی از حساس‌ترین نقاط بدن در تشخیص زودهنگام بیماری‌های زنان است.",
-    "image": "https://img.freepik.com/free-vector/human-internal-organ-with-breast_1308-102245.jpg",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVXeCuTj2PLuBxlJc58jl70tXtUs13JGKxkurLOLsawQ&s=10",
     "diseases": [
       {"name": "سرطان پستان", "desc": "تکثیر غیرطبیعی سلول‌های مجاری یا لوبول‌های پستان."},
       {"name": "فیبروادنوم", "desc": "شایع‌ترین تومور خوش‌خیم پستان که به صورت توده سفت حس می‌شود."},
@@ -335,7 +335,7 @@
   "uterus": {
     "label": "رحم و دهانه رحم",
     "info": "رحم یا زهدان، اندامی عضلانی و گلابی‌شکل است که محل نگهداری و رشد جنین می‌باشد. دهانه رحم (سرویکس) ورودی رحم است که در دوران بارداری و زایمان نقش حیاتی ایفا می‌کند.",
-    "image": "https://img.freepik.com/free-vector/human-internal-organ-with-uterus_1308-102242.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/fa/thumb/8/8f/%D8%AF%D8%B3%D8%AA%DA%AF%D8%A7%D9%87_%D8%AA%D9%88%D9%84%DB%8C%D8%AF_%D9%85%D8%AB%D9%84_%D8%B2%D9%86%D8%A7%D9%86.png/330px-%D8%AF%D8%B3%D8%AA%DA%AF%D8%A7%D9%87_%D8%AA%D9%88%D9%84%DB%8C%D8%AF_%D9%85%D8%AB%D9%84_%D8%B2%D9%86%D8%A7%D9%86.png?utm_source=fa.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
     "diseases": [
       {"name": "فیبروم رحم (میوم)", "desc": "تومورهای عضلانی خوش‌خیم که باعث درد و خونریزی می‌شوند."},
       {"name": "اندومتریوز", "desc": "رشد بافت داخلی رحم در لگن و تخمدان‌ها."},
@@ -372,7 +372,7 @@
   "ovaries": {
     "label": "تخمدان‌ها",
     "info": "تخمدان‌ها دو غده بیضی شکل هستند که تخمک‌ها را تولید و هورمون‌های استروژن و پروژسترون را ترشح می‌کنند. سلامت تخمدان‌ها برای باروری و تعادل هورمونی حیاتی است.",
-    "image": "https://img.freepik.com/free-vector/human-internal-organ-with-ovaries_1308-102243.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gray589.png/330px-Gray589.png?utm_source=fa.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
     "diseases": [
       {"name": "تخمدان پلی‌کیستیک (PCOS)", "desc": "اختلال هورمونی همراه با کیست‌های ریز و عدم تخمک‌گذاری."},
       {"name": "کیست شکلاتی", "desc": "کیست حاوی خون قدیمی ناشی از اندومتریوز."},
@@ -409,7 +409,7 @@
   "pelvis": {
     "label": "لگن خاصره",
     "info": "لگن شامل استخوان‌های محافظ و عضلات کف لگن است که مثانه، رحم و روده‌ها را در جای خود نگه می‌دارند. سلامت عضلات این ناحیه برای کنترل دفع و روابط جنسی ضروری است.",
-    "image": "https://img.freepik.com/free-vector/human-skeleton-pelvis-concept_1284-19014.jpg",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQ525lAgPP1Agddl_TRSLA4XT1JR15Copsu33uKfMSUA&s",
     "diseases": [
       {"name": "واژینیسموس", "desc": "انقباض غیرارادی عضلات واژن."},
       {"name": "التهاب لگن (PID)", "desc": "عفونت گسترده اندام‌های داخلی لگن."},
