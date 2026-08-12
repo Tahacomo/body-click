@@ -1,11 +1,10 @@
 async function loadEncyclopedia() {
     const grid = document.getElementById('organ-grid');
-
+    
     try {
         const res = await fetch('./regions.json');
         const data = await res.json();
-
-        grid.innerHTML = ""; // پاک کردن لودر
+        grid.innerHTML = ""; 
 
         Object.keys(data).forEach(key => {
             const item = data[key];
@@ -14,7 +13,7 @@ async function loadEncyclopedia() {
             const card = document.createElement('div');
             card.className = 'organ-card';
 
-            // ساخت بخش بیماری‌ها (نام قرمز، توضیحات مشکی)
+            // ساخت لیست بیماری‌ها
             let diseasesHTML = "";
             if (Array.isArray(item.diseases)) {
                 diseasesHTML = item.diseases.map(d => `
@@ -31,9 +30,17 @@ async function loadEncyclopedia() {
                     <h3>${item.label}</h3>
                     <p class="info-text">${item.info || 'توضیحات علمی برای این بخش در دسترس نیست.'}</p>
                     
-                    <div class="disease-list-mini">
-                        <h4>بیماری‌های مرتبط:</h4>
-                        ${diseasesHTML}
+                    <!-- بخش کشویی جدید -->
+                    <div class="disease-accordion">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <span>مشاهده بیماری‌های مرتبط</span>
+                            <span class="arrow-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="disease-list-wrapper">
+                                ${diseasesHTML || '<p>موردی یافت نشد.</p>'}
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -41,9 +48,26 @@ async function loadEncyclopedia() {
         });
 
     } catch (e) {
-        grid.innerHTML = "<p style='text-align:center; color:red;'>خطا در بارگذاری اطلاعات دانشنامه!</p>";
-        console.error(e);
+        grid.innerHTML = "<p style='text-align:center; color:red;'>خطا در بارگذاری اطلاعات!</p>";
     }
 }
+
+// تابع جابجایی وضعیت کشو
+window.toggleAccordion = (element) => {
+    const accordion = element.parentElement;
+    const content = accordion.querySelector('.accordion-content');
+    const isOpen = accordion.classList.contains('open');
+
+    // بستن بقیه (اختیاری - اگر می‌خواهید فقط یکی باز باشد)
+    // document.querySelectorAll('.disease-accordion').forEach(el => el.classList.remove('open'));
+
+    if (isOpen) {
+        accordion.classList.remove('open');
+        element.querySelector('span').innerText = "مشاهده بیماری‌های مرتبط";
+    } else {
+        accordion.classList.add('open');
+        element.querySelector('span').innerText = "بستن لیست بیماری‌ها";
+    }
+};
 
 window.onload = loadEncyclopedia;
