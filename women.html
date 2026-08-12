@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>بهداشت و آناتومی زنان</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+    <style>
+        /* استایل اختصاصی تم صورتی */
+        :root {
+            --pink-soft: #fff0f3;
+            --pink-primary: #ff4d6d;
+            --pink-dark: #800f2f;
+        }
+        body { background: white; color: var(--pink-dark); }
+        .women-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+
+        /* سمت چپ: پنل اطلاعات */
+        .info-side {
+            flex: 1; padding: 40px; background: var(--pink-soft);
+            overflow-y: auto; z-index: 10; border-left: 2px solid #ffccd5;
+        }
+        /* سمت راست: مدل سه بعدی */
+        .model-side { flex: 1.5; position: relative; background: white; }
+
+        .women-title { color: var(--pink-primary); font-size: 28px; margin-bottom: 10px; }
+        .region-btn-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+        .region-btn-list button {
+            background: white; border: 1px solid var(--pink-primary);
+            color: var(--pink-primary); padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .region-btn-list button.active { background: var(--pink-primary); color: white; }
+
+        .disease-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #ffccd5; }
+        .disease-card h3 { color: #d90429 !important; margin: 0 0 8px 0; font-size: 17px; }
+        .disease-card p { color: #000000 !important; font-size: 14px; margin: 0; line-height: 1.6; }
+
+        .back-home { position: fixed; top: 20px; right: 20px; z-index: 100; text-decoration: none; color: var(--pink-primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-home">← بازگشت به صفحه اصلی</a>
+
+    <div class="women-layout">
+        <!-- بخش اطلاعات سمت چپ -->
+        <aside class="info-side">
+            <h1 class="women-title">آناتومی و سلامت زنان</h1>
+            <p style="color: #590d22; margin-bottom: 25px;">یک عضو را انتخاب کنید تا بیماری‌های خاص آن را بررسی کنید.</p>
+
+            <div class="region-btn-list">
+                <button data-region="breasts">پستان‌ها</button>
+                <button data-region="uterus">رحم و دهانه رحم</button>
+                <button data-region="ovaries">تخمدان‌ها</button>
+                <button data-region="pelvis">لگن خاصره</button>
+            </div>
+
+            <div id="women-content">
+                <div style="text-align: center; padding-top: 50px; color: #ff8fa3;">
+                    <h3>منتظر انتخاب شما...</h3>
+                </div>
+            </div>
+        </aside>
+
+        <!-- بخش مدل سه بعدی سمت راست -->
+        <main class="model-side">
+            <canvas id="women-scene"></canvas>
+            <div id="loading-women" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: white;">
+                <b>در حال بارگذاری مدل زن...</b>
+            </div>
+        </main>
+    </div>
+
+    <div class="footer-credits" style="color: var(--pink-primary);">ساخته شده توسط @Tahacomo</div>
+
+    <script type="module" src="women.js"></script>
+</body>
+</html>
