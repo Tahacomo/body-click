@@ -224,26 +224,77 @@ body { margin: 0; background: var(--bg); overflow-x: hidden; }
     margin-bottom: 20px;
 }
 
-.disease-list-mini {
+/* استایل آکاردئون (کشویی) */
+.disease-accordion {
     border-top: 1px solid #f1f5f9;
-    padding-top: 15px;
+    margin-top: 15px;
 }
 
-.disease-list-mini h4 { color: #adb5bd; font-size: 12px; margin-bottom: 12px; letter-spacing: 1px; }
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    cursor: pointer;
+    color: #0062ff;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+}
 
-.disease-item-ency { margin-bottom: 15px; }
+.accordion-header:hover {
+    color: #004dc0;
+}
+
+.arrow-icon {
+    font-size: 10px;
+    transition: transform 0.4s ease;
+    color: #adb5bd;
+}
+
+/* محتوای مخفی */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0, 1, 0, 1); /* انیمیشن نرم برای باز شدن */
+    background: #fcfdfe;
+    border-radius: 15px;
+}
+
+/* وقتی کشو باز می‌شود */
+.disease-accordion.open .accordion-content {
+    max-height: 2000px; /* مقدار زیاد برای جا شدن تمام بیماری‌ها */
+    transition: max-height 1s ease-in;
+    padding-bottom: 20px;
+}
+
+.disease-accordion.open .arrow-icon {
+    transform: rotate(180deg);
+    color: #0062ff;
+}
+
+.disease-list-wrapper {
+    padding: 10px;
+}
+
+/* استایل بیماری‌ها (ثابت ماندن رنگ قرمز و مشکی) */
+.disease-item-ency {
+    margin-bottom: 15px;
+    padding-right: 10px;
+    border-right: 2px solid #ffccd5; /* یک خط ظریف صورتی/قرمز کنار هر بیماری */
+}
 
 .disease-item-ency b {
-    color: #d90429; /* نام بیماری قرمز */
+    color: #d90429 !important; /* نام بیماری قرمز */
     display: block;
     font-size: 15px;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
 
 .disease-item-ency span {
-    color: #000000; /* توضیحات مشکی */
+    color: #000000 !important; /* توضیحات مشکی */
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.6;
     display: block;
 }
 
