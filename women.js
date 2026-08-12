@@ -34,25 +34,49 @@ async function init() {
 
     const loader = new GLTFLoader();
     // نکته: اگر فایل female.glb دارید جایگزین کنید، در غیر این صورت از مدل قبلی با رنگ متفاوت استفاده می‌شود
-    loader.load('./models/human.glb', (gltf) => {
-        model = gltf.scene;
-        model.traverse(child => {
-            if (child.isMesh) {
-                child.material = new THREE.MeshPhysicalMaterial({
-                    color: 0xffb3c1, roughness: 0.3, transmission: 0.2, transparent: true, opacity: 0.8
-                });
-            }
-        });
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        model.position.y = -0.8;
-        model.scale.setScalar(3.8 / size.y);
-        scene.add(model);
-
-        setupWomenZones();
-        document.getElementById('loading-women').style.display = 'none';
-        animate();
+    // این بخش را در فایل women.js جایگزین بخش قبلی کنید
+loader.load('./models/woman.glb', (gltf) => {
+    model = gltf.scene;
+    model.traverse(child => {
+        if (child.isMesh) {
+            child.material = new THREE.MeshPhysicalMaterial({
+                color: 0xffb3c1, roughness: 0.3, transmission: 0.2, transparent: true, opacity: 0.8
+            });
+        }
     });
+
+    // --- اصلاح موقعیت مدل ---
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    // مدل را به مرکز مختصات منتقل می‌کنیم
+    model.position.x += (model.position.x - center.x);
+    model.position.y += (model.position.y - center.y);
+    model.position.z += (model.position.z - center.z);
+
+    // تنظیم مقیاس بر اساس ارتفاع
+    model.scale.setScalar(3.5 / size.y);
+    
+    scene.add(model);
+
+    // تنظیم هدف دوربین روی مرکز مدل
+    controls.target.set(0, 0, 0);
+    camera.position.set(0, 0, 5); // دوربین مستقیم روبروی مدل
+    
+    setupWomenZones();
+    document.getElementById('loading-women').style.display = 'none';
+    animate();
+});
+
+// اصلاح تابع resize برای جلوگیری از کشیدگی تصویر
+window.addEventListener('resize', () => {
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height, false);
+});
 
     setupEvents();
 }
